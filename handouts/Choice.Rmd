@@ -1,0 +1,51 @@
+---
+title: "Opportunity cost"
+subtitle: "Relational operation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+> It's all about comparison
+
+```{r}
+myOptions <- c("apple", "orange")
+```
+
+> Which one to chooose?
+
+  * Preference: how we order things?
+  
+  * Choice set: What things can we choose from? 
+  
+  * How to choose: When preference meets choice set
+
+# Preference
+
+  * Numberical numbers are ordered.
+  
+
+
+$$\mbox{options} \rightarrow \mbox{utilities}$$
+
+```{r}
+preference <- factor(myOptions, levels=c("apple", "orange"), ordered = T)
+preference
+```
+
+```{r}
+myOptions <- c(myOptions, "banana")
+```
+
+```{r}
+preference <- factor(myOptions, levels=c("apple", "orange","banana"), ordered=T)
+preference
+```
+# choice set
+
+```{r}
+choiceSet= c("apple","banana")
+```
+

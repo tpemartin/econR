@@ -1,0 +1,34 @@
+Economic modeling is about playing god. 
+
+You have the power to produce a consumer,
+
+Whose happiness is solely depend on a function, called **utility function**:
+```{r}
+bundle <- setNames(vector("numeric",2), c("X","Y"))
+utility <- function(bundle){
+  prod(bundle**c(0.3, 0.8))
+}
+utility(bundle)
+```
+
+Whose resource is limited, confined by **budget constraint**:
+```{r}
+budget_constraint <- 
+  list(
+    Prices = setNames(vector("list", length(bundle)), names(bundle)),
+    Income = 0
+  )
+
+budget_constraint$Prices$X=10
+budget_constraint$Prices$Y=5
+budget_constraint$Income=2000
+```
+
+
+You give it existence:
+```{r}
+consumer <- Consumer(utility, budget_constraint)
+consumer$budget_constraint
+
+```
+

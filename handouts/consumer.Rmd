@@ -1,0 +1,222 @@
+---
+title: "Consumer"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = F)
+```
+
+<!--
+## Consumer
+-->
+
+### Utility function
+
+$$U(\bf{X}),$$
+where $\bf{X}$ is a vector of commodities. 
+
+```{r}
+# Choice of container: numeric vector? list?
+X <- ?
+```
+
+depends on how do you use $U$ function.
+
+  * $U(c(1,3,4))$ as 3 different commodities.
+  
+  * $U(c(1,3,4))$ as 1 commodity of 3 quantities.
+  
+A better way is to use **list** which imposes **structure** so that:
+  
+  * The **1st** layer differentiate commodities.
+  
+  * The **2nd** layer shows the quantities of a given commodity.
+  
+### Consumption bundles
+
+A consumption bundle is **one consumption choice** that can be used to **uniquely** compute consumer's happiness (i.e. utility) gained from consuming that bundle.
+
+```{r}
+# 1 commodity with 3 different quantities
+list(
+  X1=c(1,3,4)
+)
+# 2 commodities, each with 3 different quantities
+list(
+  X1=c(1,3,4),
+  X2=c(2,3,3)
+) -> c23
+# 2 commodities, one with 3 different quantities, the other with 1 quantity
+list(
+  X1=c(1,3,4),
+  X2=c(2)
+) -> c23_2
+```
+
+  * Should **X1, X2** have the same length? 
+  
+```{r}
+as.data.frame(c23) -> c23
+as.data.frame(c23_2) -> c23_2 # X2 will be recycled.
+```
+
+<div class="alert alert-info">
+**list** is a good choice of defining consumption bundde. **as.data.frame** keeps consumption bundles balanced; just be aware of how recycle works in R.
+</div>
+
+### Utility mapping
+
+A utility function should be able to map **one bundle** to **one happiness value**
+
+```{r}
+bundle_one <- c23[1,]
+bundle_two <- c23[2,]
+bundle_three <- c23[3,]
+```
+
+
+#### Cobb-Douglas Preference{-}
+
+$$\Pi_{i=1,\dots,n}\bf{X}_i^{\alpha_i},$$
+where $\bf{X}_i$ means the quantity of commodity **i** from bundle **X**.
+
+When $n=2$, 
+
+$$\Pi_{i=1,2}\bf{X}_i^{\alpha_i}=\bf{X}_1^{\alpha_1}\bf{X}_2^{\alpha_2}$$
+```{r}
+X <- bundle_one
+```
+
+Consider 
+$$\bf{X}_1^{0.3}\bf{X}_2^{1.2}$$
+
+A utility mapping:
+$$\mbox{one bundle}\stackrel{\mbox{utility function}}{\longrightarrow}\mathcal{R}^1$$
+```{r}
+class(bundle_one)
+dim(bundle_one)
+```
+  * one bundle is a data.frame with 1 observation (i.e 1 row)
+  
+```{r}
+cobbDouglass <- function(bundle_one){
+  assertthat::assert_that(
+    (is.data.frame(bundle_one) &&
+      nrow(bundle_one)==1),
+    msg="one bundle is a data.frame with 1 observation (i.e 1 row)"
+  ) # must have msg=
+  util <- bundle_one[[1]]^0.3*bundle_one[[2]]^1.2
+  return(util)
+}
+```
+
+
+```{r}
+cobbDouglass(bundle_one = bundle_one)
+```
+
+### Vectorized function (Universal function)
+
+When using function to deliver mapping, functions that deal with multiple argument values (i.e. vector) boost efficiency.
+
+```{r}
+# X = c23[1, ]
+c23[1,1]**0.3 * c23[1,2]**1.2
+# same as
+c23[1, ]**c(0.3, 1.2)
+prod(c23[1, ]**c(0.3, 1.2))
+```
+
+```{r}
+c(
+  c23[1,1]**0.3, 
+  c23[1,2]**1.2
+)
+```
+Same as
+
+```{r}
+c23[1, ]**c(
+  0.3,
+  1.2
+)
+```
+
+***
+
+```{r}
+.Last.value[[1]]*.Last.value[[2]]
+```
+
+$\Pi_{i}$ is equivalent to using `prod()`.
+
+```{r}
+prod(c23[1,]**c(0.3, 1.2))
+```
+
+
+```{r}
+cobbDouglass <- function(one_bundle){
+  prod(one_bundle**c(0.3, 1.2))
+}
+```
+
+
+***
+
+Is **cobbDouglass** universal?
+
+```{r}
+list(
+  cobbDouglass_u(c23[1,]),
+  cobbDouglass_u(c23[2,]),
+  cobbDouglass_u(c23[3,])
+)
+```
+
+```{r}
+cobbDouglass_u(c23)
+```
+
+
+```{r}
+purrr::map_dbl(
+  1:3,
+  ~cobbDouglass(c23[.x,])
+)
+```
+
+```{r}
+cobbDouglass(c23)
+```
+NOT the same!!! Not UNIVERSAL.
+
+```{r}
+c23**c(0.3, 1.2)
+```
+
+```{r}
+purrr::reduce(
+  c23**c(0.3, 1.3), `*`
+)
+```
+
+
+```{r}
+cobbDouglass_u <- function(bundles){
+  purrr::reduce(
+    bundles**c(0.3, 1.3), `*`
+  )
+}
+```
+
+
+```{r}
+purrr::map_dbl(
+  1:3, 
+  ~cobbDouglass_u(c23[.x,]))
+# the same as
+cobbDouglass_u(c23)
+```
+
