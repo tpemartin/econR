@@ -71,7 +71,7 @@ reticulate::conda_install("r-reticulate",
 ```
 
 <div class="alert alert-info">
-Only mature packages will be collected to be stored inside conda distribution system. They are stable. However, packages from **individual developer** and the preview version of packages might not be available through conda. Fortunately, almost all Python packages can be distributed via **PyPI** system using `pip` installation.
+Only mature packages will be collected and stored inside conda distribution system. They are stable. However, packages from **individual developer** and the preview version of packages might not be available through conda. Fortunately, almost all Python packages can be distributed via **PyPI** system using `pip` installation.
 </div>
 
 ### Via PyPI
