@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r makecondition}
 library(reticulate)
 use_condaenv("r-reticulate")
+
+library(econR) # 經濟模型程式設計專題用
 ```
 
 ## Install packages

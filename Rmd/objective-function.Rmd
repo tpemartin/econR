@@ -1,0 +1,89 @@
+---
+title: "Objective Function"
+output: 
+  html_document:
+    include:
+      in_header: "html/header.html"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r makecondition, echo=F}
+library(reticulate)
+use_condaenv("r-reticulate")
+
+library(econR) # 經濟模型程式設計專題用
+```
+
+
+```{r, eval=T, echo=F}
+teachDS::img_centering("https://media.giphy.com/media/l2Je1m4g9QMiOsJlS/giphy.gif")
+klippy::klippy(lang=c("r","python"))
+```
+
+
+$$\bf{X}\in\mathcal{R}^n\stackrel{f}{\rightarrow}\mathcal{R}^1$$
+
+  * Start from $\bf{X}$, alway the way to $\mathcal{R}^1$.
+  
+## Let's describe X
+
+```{r}
+teachDS::generate_targetPill("Choose a proper type to store X values.")
+```
+
+Options:
+
+  * Numeric
+  
+  * Boolean
+  
+  * Character
+  
+  * List
+
+<div class="question">
+What is a good type for each agent? 
+</div>
+
+```{r}
+a <- 3
+```
+
+```{python}
+a = 3
+```
+
+
+### Consumer
+
+
+  * 3 apple, 2 bananas
+
+How would you store this information?
+
+### Firm
+
+A coffee shop
+
+  * Input: 200 pounds of coffee beans, 100 liters of water, 3 employees, a shop space of 10 square feet.
+
+### Government
+
+Monitor economic performance closely. 
+
+  * Inflation rates in the past 2 years: 0.25%, 1%
+  
+  * Unemployment rates in the past 2 years: 4%, 8%
+  
+  * Real wage growth rates in the past 2 years: 0.1%, 0.8%
+  
+## Let's image how they care
+
+  * Ordinal? 
+  Agents only care at the ranking level. No need to go into detail numeric value assignment.
+  
+  * Cardinal? 
+  Agents cares about the detailed numbers.
