@@ -12,7 +12,7 @@ library(dplyr)
 library(ggplot2)
 library(plotly)
 # Paste your drake Rdata loading here
-xfun::download_file("https://www.dropbox.com/s/awx8datq45kgpzq/overview_drake.Rdata?dl=1")
+xfun::download_file("https://www.dropbox.com/s/awx8datq45kgpzq/overview_drake.Rdata?dl=1", mode="wb")
 load("overview_drake.Rdata")
 ```
 
