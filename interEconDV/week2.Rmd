@@ -22,25 +22,187 @@ load("scattered_foundations_drake.Rdata")
 drake$.updateCache()
 drake$source_plan()
 drake$makePlan()
+drake$visualize()
 ```
 
-load target
+## scattered foundations
+
+
 ```{r}
-drake$loadTarget$pltWithoutI()
-pltWithoutI
+library(ggplot2)
+library(dplyr)
+library(plotly)
+library(lubridate)
+econ <- economics %>%
+  mutate(yr = year(date), mnth = month(date))
 ```
 
-see original code
+
 ```{r}
-drake$clipCommand$pltWithoutI() # store in your clipboard after running this command
+# One trace (more performant, but less interactive)
+econ %>%
+  group_by(yr) %>%
+  ggplot(
+    aes(x=mnth, y=uempmed)
+  ) +
+  geom_line(
+    aes(
+      group=yr,
+      color=factor(yr)
+    )
+  ) -> gg0
+gg0
+
+ggplotly(gg0)
 ```
 
-paste in the place you want to see the code
-
-##
 
 ```{r}
-Pily(plt_multTraces)
-pily$get_json()
+econ %>%
+  plot_ly(x = ~mnth, y = ~uempmed) %>%
+  add_lines(
+    split = ~yr
+  ) 
+```
+
+```{r}
+econ %>%
+  group_by(yr) %>%
+  plot_ly(x = ~mnth, y = ~uempmed) %>%
+  add_lines(  )
+
+```
+```{r}
+model.frame(
+  ~paste0("民國",I(yr-1911)), data=econ
+)
+```
+
+
+```{r}
+econ %>%
+  plot_ly(x = ~mnth, y = ~uempmed) %>%
+  add_trace(
+    type='scatter',
+    mode='lines',
+    color = ~ordered(yr),
+    text = ~paste0("民國",I(yr-1911)),
+    showlegend = FALSE
+  )
+
+```
+
+
+```{r}
+jsonlite::fromJSON("https://www.dropbox.com/s/q7h63r8p497q7xz/df_gdp_unemployment4label.json?dl=1") -> df_gdp_unemployment4label
+jsonlite::fromJSON("https://www.dropbox.com/s/dukzr6w2wj5vzfv/df_gdp_unemployment4plt.json?dl=1") -> df_gdp_unemployment4plt
+```
+
+```{r}
+library(ggplot2)
+df_gdp_unemployment4plt %>%
+  ggplot()+
+  geom_path(
+    aes(
+      x=urate,
+      y=growthRate
+    )
+  ) -> gg_urateGrowth
+
+ggplotly(gg_urateGrowth) -> plt_template
+plotly_json(plt_template)
+```
+
+
+```{r}
+df_gdp_unemployment4plt %>%
+  mutate(
+    time=lubridate::ymd(time)
+  ) -> df_gdp_unemployment4plt
+
+paste0(lubridate::year(df_gdp_unemployment4plt$time),"-",
+       lubridate::month(df_gdp_unemployment4plt$time)) ->
+  df_gdp_unemployment4plt$text
+df_gdp_unemployment4plt$text
+
+```
+
+
+```{r}
+df_gdp_unemployment4plt %>%
+  plot_ly(
+    x=~urate, y=~growthRate
+  ) %>%
+  add_trace(
+    type="scatter",
+    mode="lines",
+    text=~text
+  )
+```
+
+```{r}
+body(add_lines)
+```
+
+
+```{r}
+drake$loadTarget$plt_multTraces()
+plt_multTraces
+plotly::plotly_json(plt_multTraces)
+```
+
+  * basic plotly draw
+  
+  * `plotly::plotly_json(p)` investigate its data contents: they tell you what js attributes are associated with your plot.
+  
+  * Read reference webpage <https://plotly.com/r/reference/scatter/>
+  
+```{r}
+add_trace(
+  type="makers",....
+) %>%
+  add_trace(
+    type="lines"
+  )
+```
+
+```{r}
+plot_ly() %>%
+ add_trace(
+   type = "scatter",
+   mode = "markers+lines+text",
+   x = 4:6, 
+   y = 4:6,
+   text = replicate(3, praise::praise("You are ${adjective}! 🙌")),
+   textposition = "right",
+   hoverinfo = "text",
+   textfont = list(family = "Roboto Condensed", size = 16)
+ ) %>%
+ layout(xaxis = list(range = c(3, 8)))
+```
+
+```{r}
+subplot(
+  plot_ly(mpg, x = ~cty, y = ~hwy, name = "default"),
+  plot_ly(mpg, x = ~cty, y = ~hwy) %>% 
+    add_markers(alpha = 0.2, name = "alpha")
+)
+```
+
+
+```{r}
+plot_ly(mpg, x = ~cty, y = ~hwy) %>% 
+    add_markers(alpha = 0.2, name = "alpha")
+```
+
+```{r}
+body(add_markers)
+```
+
+
+```{r}
+plot_ly(mpg, x = ~cty, y = ~hwy) %>% 
+    add_markers(alpha = 0.2, name = "alpha") %>%
+  plotly_json()
 ```
 
