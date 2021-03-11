@@ -1,0 +1,179 @@
+---
+title: "互動式經濟資料視覺化"
+output: output_format
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(plotly)
+# Paste your drake Rdata loading here
+xfun::download_file("https://www.dropbox.com/s/awx8datq45kgpzq/overview_drake.Rdata?dl=1", mode="wb")
+load("overview_drake.Rdata")
+```
+
+
+```{r}
+.root <- rprojroot::is_rstudio_project$make_fix_file()
+drake$.updateCache()
+drake$source_plan()
+drake$makePlan()
+```
+
+load target
+```{r}
+drake$loadTarget$pltWithoutI()
+pltWithoutI
+```
+
+see original code
+```{r}
+drake$clipCommand$pltWithoutI() # store in your clipboard after running this command
+```
+
+paste in the place you want to see the code
+
+##
+
+```{r}
+library(osmdata)
+library(dplyr)
+```
+```{r}
+osmdata::getbb("Taipei") -> bb_tpe
+
+bb_tpe %>%
+  osmdata::opq() -> opq_tpe
+
+opq_tpe %>%
+  osmdata::add_osm_feature(
+    key="admin_level",
+    value="5"
+  ) -> opq_tpe_boundaries
+
+opq_tpe %>%
+  osmdata::add_osm_feature(
+    key="amenity",
+    value="place_of_worship"
+  ) -> opq_tpe_worship
+```
+
+```{r}
+opq_tpe_boundaries %>%
+  osmdata::osmdata_sf() -> sf_tpe_boundaries
+
+opq_tpe_worship %>%
+  osmdata::osmdata_sf() ->
+  sf_tpe_worship
+```
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+osmdata::getbb("Sanxia District") -> bb_sanxia
+
+bb_sanxia %>%
+  osmdata::opq() -> opq_sanxia
+```
+
+```{r}
+bb_sanxia2 = c(
+  121.2784, 24.8908, 121.4645, 24.9780
+)
+
+bb_sanxia2 %>% osmdata::opq() -> opq_sanxia2
+```
+
+```{r}
+sf_tpe_boundaries %>%
+  osmdata::unname_osmdata_sf() ->
+  sf_unnamed_taipei
+```
+
+```{r}
+plotly::plot_ly(
+  data=sf_unnamed_taipei$osm_multipolygons
+)
+```
+
+
+```{r}
+plotly::plot_ly() %>%
+  plotly::add_sf(
+    data = sf_unnamed_taipei$osm_multipolygons,
+    stroke=I("white"), alpha=0.3,
+    split= ~name
+  ) %>%
+  plotly::add_sf(
+    data =
+      sf_tpe_worship$osm_points,
+    marker = list(
+      size=2
+    ),
+    hoverinfo="text",
+    text = ~name.en
+  )
+```
+
+```{r}
+plotly::plot_ly() %>%
+  plotly::add_sf(
+    data =
+      sf_tpe_worship$osm_points
+  ) -> 
+  plt_2check
+
+plotly::plotly_json(plt_2check)
+```
+
+### NTPU
+
+```{r}
+bb_ntpu <- c(
+  121.3551, 24.9317, 121.3803, 24.9546
+)
+
+library(osmdata)
+opq(bb_ntpu) %>%
+  add_osm_feature(
+    key = "amenity",
+    value="university"
+  ) -> opq_ntpu
+
+opq(bb_ntpu) %>%
+  add_osm_feature(
+    key = "building",
+    value="university"
+  ) -> opq_ntpuBuildings
+
+osmdata_sf(opq_ntpu) -> 
+  sf_ntpu
+osmdata_sf(opq_ntpuBuildings) -> sf_ntpuBuildings
+```
+
+```{r}
+sf_ntpu$osm_polygons %>%
+  plotly::plot_ly()
+```
+
+```{r}
+plotly::plot_ly() %>%
+  plotly::add_sf(
+    data=
+      sf_ntpu$osm_polygons
+  ) %>%
+  plotly::add_sf(
+    data=
+      sf_ntpuBuildings$osm_polygons,
+    hoverinfo="text",
+    split=~name,
+    text=~name
+  )
+```
+

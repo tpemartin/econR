@@ -27,6 +27,13 @@ drake$visualize()
 
 ## scattered foundations
 
+```{r}
+drake$loadTarget$plt_multTraces2()
+plt_multTraces2
+drake$clipCommand$plt_multTraces2()
+plt_multTraces2
+```
+
 
 ```{r}
 library(ggplot2)
