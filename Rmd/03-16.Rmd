@@ -1,0 +1,451 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Makecondition
+
+```{r makecondition}
+library(reticulate)
+use_condaenv("r-reticulate")
+
+library(econR) # 經濟模型程式設計專題用
+```
+
+## Install packages
+
+Through Conda:
+```{r, eval=F}
+conda_install("r-reticulate",
+              packages=c("numpy", "pandas"))
+```
+
+Through PyPI:
+```{r, eval=FALSE}
+conda_install("r-reticulate",
+              packages=c("numpy", "pandas"),
+              pip = TRUE)
+```
+
+
+## Codes
+
+```{python}
+dict0 = {"apple":2, "banana":3}
+help(dict0.clear)
+```
+
+
+```{python}
+dict0.__class__
+```
+
+
+```{python}
+help(dict.clear) # class.method
+help(dict.fromkeys)
+
+```
+
+```{python}
+import math
+help(math.acos) # namespace.function
+```
+
+```{r}
+library(dplyr)
+?dplyr::filter
+?stats::filter
+```
+
+```{python}
+help(range)
+```
+
+```{python}
+coord1 = (5, 3.3, 4)
+print(coord1)
+```
+
+```{python}
+coord1[0] = 2
+```
+
+```{python}
+coord2 = [5, 3.3, 4]
+coord2[0] = 2
+print(coord2)
+```
+```{python}
+tp0 = ("1", 1, 5, "5", "1")
+tp0.count("1") # how many "1"
+tp0.index(5) # where is 5
+```
+
+
+```{python}
+dict0 = dict({})
+dict0 = dict() # as.dictionary
+list0 = list() # as.list
+list0 = list([])
+```
+
+```{python}
+list_tp0 = list(tp0) # as.list
+list_tp0[3] = 4
+print(list_tp0)
+
+tp1 = tuple(list_tp0)
+print(tp1)
+```
+
+```{python}
+preference_params = (4, 5)
+def U(x,y):
+    (alpha, beta) = preference_params
+    return x**alpha*y**beta
+
+U(2,3)
+```
+
+```{python}
+preference_params = (4, 5)
+def U(x,y):
+    alpha = preference_params[0]
+    beta = preference_params[1]
+    # (alpha, beta) = preference_params
+    return x**alpha*y**beta
+
+U(2,3)
+```
+
+```{python}
+tuple_params = (3, 4)
+par1, par2 = tuple_params
+
+list_params = [7, 8]
+par3, par4 = list_params
+
+print(par1)
+print(par2)
+print(par3)
+print(par4)
+```
+```{python}
+def validate_c(c):
+    assert (
+      type(c) is tuple # alternative must be a tuple
+      and len(c) == 2
+      and all([ type(ci) is int or type(ci) is float for ci in c])
+    ), "c must be a tuple of two numbers."
+    x1, x2 = c
+    
+    if 5*x1+7*x2 <= 10000: # alternative must lie inside the budget constraint
+        return c
+    else:
+        return None
+
+# EOF
+```
+
+```{python}
+import math # most math functions are in this module
+
+I = 50
+P_apple = 5
+P_banana = 7
+x1 = 3
+x2_max = math.floor((I-5*x1)/P_banana) # 無條件捨去
+list_x1 = [(x1, x2) for x2 in range(x2_max+1)]
+
+# EOF
+```
+```{python}
+import math # most math functions are in this module
+
+I = 50
+P_apple = 5
+P_banana = 7
+
+x1_max = round(I / P_apple)
+
+X = [] # X = list()
+for x1 in range(x1_max+1):
+    x2_max = math.floor((I-5*x1)/P_banana) # 無條件捨去
+    list_x1 = [(x1, x2) for x2 in range(x2_max)]
+    X.extend(list_x1)
+
+# EOF
+print(X)
+```
+
+```{python}
+print(X)
+```
+```{python}
+dict0[(5,3)]
+```
+
+```{python}
+def U_cobbDouglas(x, params=(1,1)):
+    assert (
+      type(x) is tuple
+      and len(x) == 2
+      and all([type(xi) is int for xi in range(len(x))])
+    ), "Alternative should be a tuple of two integers"
+    
+    alpha, beta = params
+    x1, x2 = x
+    u = x1**alpha * x2**beta
+    
+    return u
+
+
+# EOF
+```
+
+
+```{python}
+try: 
+    U_cobbDouglas([2,3]) 
+except: 
+    "Error"
+
+U_cobbDouglas((2,3))
+U_cobbDouglas((3,4))
+```
+
+
+```{python}
+list0 = [2, 3, 7]
+list1 = list0.copy()
+
+newList = [5, "b"]
+list0.append(newList)
+print(list0)
+
+list1.extend(newList)
+print(list1)
+```
+
+```{python}
+alpha, beta = (1,1)
+U_cobbDouglas_dict = {
+  key: key[0]**alpha * key[1]**beta for key in X
+}
+```
+
+prototyping:
+```{python}
+dict0 = dict()
+alpha, beta = (1,1)
+for key in X:
+    dict0.update({key: key[0]**alpha * key[1]**beta})
+
+print(dict0)
+```
+
+```{python}
+dict0 = {key: key[0]**alpha * key[1]**beta for key in X}
+print(dict0)
+```
+
+```{python}
+alpha, beta = (1,1)
+U_cobbDouglas_dict = {
+  key: key[0]**alpha * key[1]**beta for key in X
+}
+```
+
+```{python}
+U_cobbDouglas_dict.keys()
+U_cobbDouglas_dict[(4,2)]
+U_cobbDouglas_dict[(3,4)]
+```
+
+## Class
+
+```{r}
+p_x1=5; p_x2=7; I=100
+
+consumer <- new.env()
+
+consumer$params <- c(1,1)
+
+consumer$preference <- function(x, params=consumer$params){
+  assertthat::assert_that(
+    is.numeric(x)
+    && length(x) == 2,
+    msg="alternative must be a vector of 2 numeric values"
+  )
+  
+  u = x[[1]]**params[[1]] * x[[2]]**params[[2]]
+  
+  return(u)
+}
+
+consumer$validate_c <- function(x){
+  assertthat::assert_that(
+    is.numeric(x)
+    && length(x) == 2,
+    msg="alternative must be a vector of 2 numeric values"
+  )
+  
+  if(p_x1*x[[1]]+p_x2*x[[2]] <= I){
+    return(x)
+  } else {
+    return(NA)
+  }
+}
+```
+
+```{r}
+consumer$params
+consumer$preference(c(2,2))
+consumer$validate_c(c(1200,200))
+```
+
+```{r}
+p_x1=5; p_x2=7; I=100
+
+Consumer = function(params){
+  
+  consumer <- new.env()
+
+  consumer$params <- params # replace c(1,1)
+  
+  consumer$preference <- function(x, params=consumer$params){
+    assertthat::assert_that(
+      is.numeric(x)
+      && length(x) == 2,
+      msg="alternative must be a vector of 2 numeric values"
+    )
+    
+    u = x[[1]]**params[[1]] * x[[2]]**params[[2]]
+    
+    return(u)
+  }
+  
+  consumer$validate_c <- function(x){
+    assertthat::assert_that(
+      is.numeric(x)
+      && length(x) == 2,
+      msg="alternative must be a vector of 2 numeric values"
+    )
+    
+    if(p_x1*x[[1]]+p_x2*x[[2]] <= I){
+      return(x)
+    } else {
+      return(NA)
+    }
+  }
+  
+  return(consumer)
+}
+```
+
+```{r}
+consumer11 <- Consumer(c(1,1)) # preference: x*y
+consumer35 <- Consumer(c(3,5)) # preference: x**3 * y**5
+
+consumer11$preference(c(2,5))
+consumer35$preference(c(2,5))
+
+many_consumers <- list(
+  consumer11,
+  consumer35
+)
+many_consumers[[1]]$params
+many_consumers[[1]]$preference(c(5,3))
+many_consumers[[2]]$params
+many_consumers[[2]]$preference(c(5,3))
+```
+
+```{python}
+p_x1=5; p_x2=7; I=100
+```
+
+## a consumer
+
+### attribute
+
+```{python}
+params = (1,1)
+```
+```{python}
+class Consumer:
+    
+    # define attributes: 
+    def __init__(self, params):
+        self.params = params
+    
+    # methods: dynamic method
+    
+    def preference(self, x):
+        
+        alpha, beta = self.params
+        u = x[0]**alpha * x[1]**beta
+        
+        return u
+    
+    @staticmethod
+    
+    def validate_c(x):
+        
+        if p_x1*x[0]+p_x2*x[1] <= I:
+            return x
+        else:
+            return None
+
+
+
+```
+
+```{python}
+params = (3,5)
+consumer35 = Consumer(params)
+consumer35.params
+consumer35.preference((5,6))
+consumer35.validate_c((5,5))
+```
+
+```{python}
+type(consumer35) is Consumer
+```
+
+
+```{python}
+consumer.params
+```
+
+### method
+
+#### preference
+
+```{python}
+def preference(x, params=params):
+    
+    alpha, beta = params
+    u = x[0]**alpha * x[1]**beta
+    
+    return u
+
+# EOF
+```
+#### validate_c
+
+```{python}
+def validate_c(x):
+    
+    if p_x1*x[0]+p_x2*x[1] <= I:
+        return x
+    else:
+        return None
+
+# EOF
+```
+
