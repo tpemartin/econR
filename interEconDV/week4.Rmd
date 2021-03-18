@@ -128,18 +128,8 @@ plot_ly() %>%
   )
 ```
 
-```{r}
-sf_taipei$geometry
-```
-```{r}
-bb_taipei <- sf::st_bbox(sf_taipei$geometry)
-sf::st_crop(sf_heritage, bb_taipei) -> sf_heritage
-```
 
-
-```{r}
-sf_heritage$geometry
-```
+## set CRS for sf_heritage
 
 ```{r}
 crsX <- sf::st_crs(sf_taipei$geometry)
@@ -149,6 +139,22 @@ crsX <- sf::st_crs(sf_taipei$geometry)
 ```{r}
 sf::st_set_crs(sf_heritage$geometry, crsX) -> sf_heritage$geometry
 ```
+
+```{r}
+sf_heritage$geometry
+```
+
+## bbox cropping sf_heritage
+
+```{r}
+sf_taipei$geometry
+```
+
+```{r}
+bb_taipei <- sf::st_bbox(sf_taipei$geometry)
+sf::st_crop(sf_heritage, bb_taipei) -> sf_heritage
+```
+
 
 ```{r}
 sf_heritage$geometry
