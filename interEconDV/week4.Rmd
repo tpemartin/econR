@@ -96,3 +96,24 @@ for(i in 1:nrow(heritageDataComplete)){
 }
 ```
 
+```{r}
+sfc_points <- sf::st_sfc(list_points)
+```
+
+```{r}
+# 1 form your own PROPER data frame which has a sfc column called geometry
+sf_heritage <- 
+  data.frame(
+    caseName = heritageDataComplete$caseName,
+    geometry = sfc_points
+  )
+class(sf_heritage)
+
+# 2 convert proper data frame to sf data frame
+sf_heritage <- sf::st_as_sf(sf_heritage)
+```
+
+```{r}
+sf_unnamed_taipei$osm_multipolygons$geometry
+```
+
