@@ -193,27 +193,18 @@ plot_ly() %>%
     data=sf_heritage
   )
 ```
+
 ## Import gpx data (xml)
-/Users/martinl/Dropbox/github-data/109-2-interEconDV/heritage.Rdata 
 
+更新econR:  
 ```{r}
-xml2::read_xml("https://www.dropbox.com/s/0nyv3m2tuhftigs/%E7%8E%8B%E5%85%AC%E5%BB%9F.gpx?dl=1") -> xml_gpx
-xml_gpx %>%
-  xml2::xml_child() -> xml_gpx_child
-xml_gpx_child %>%
-  xml2::xml_child() -> all_lat_lon
-
-all_lat_lon %>%
-  xml2::xml_children() %>%
-  xml2::xml_attrs() -> list_lat_lon_temple
-
-
+remotes::install_github("tpemartin/econR", force = T)
 ```
 
-
+引入gpx資料並轉成list of longitude-latitude
 ```{r}
-xml_gpx %>%
-
-  xml2::as_list() -> gpx
+library(dplyr)
+xml2::read_xml("https://www.dropbox.com/s/0nyv3m2tuhftigs/%E7%8E%8B%E5%85%AC%E5%BB%9F.gpx?dl=1") -> xml_gpx
+xml_gpx %>% econR::gpx_as_list() -> list_lon_lat
 ```
 
