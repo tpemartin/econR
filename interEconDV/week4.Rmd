@@ -170,4 +170,26 @@ plot_ly() %>%
     data=sf_heritage
   )
 ```
+## Import gpx data (xml)
+
+```{r}
+xml2::read_xml("/Users/martinl/Downloads/王公廟.gpx") -> xml_gpx
+xml_gpx %>%
+  xml2::xml_child() -> xml_gpx_child
+xml_gpx_child %>%
+  xml2::xml_child() -> all_lat_lon
+
+all_lat_lon %>%
+  xml2::xml_children() %>%
+  xml2::xml_attrs() -> list_lat_lon_temple
+
+
+```
+
+
+```{r}
+xml_gpx %>%
+
+  xml2::as_list() -> gpx
+```
 
