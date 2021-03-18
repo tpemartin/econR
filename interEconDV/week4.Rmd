@@ -194,7 +194,7 @@ plot_ly() %>%
   )
 ```
 ## Import gpx data (xml)
-/Users/martinl/Dropbox/github-data/109-2-interEconDV/heritage.Rdata
+/Users/martinl/Dropbox/github-data/109-2-interEconDV/heritage.Rdata 
 
 ```{r}
 xml2::read_xml("https://www.dropbox.com/s/0nyv3m2tuhftigs/%E7%8E%8B%E5%85%AC%E5%BB%9F.gpx?dl=1") -> xml_gpx
