@@ -114,6 +114,54 @@ sf_heritage <- sf::st_as_sf(sf_heritage)
 ```
 
 ```{r}
-sf_unnamed_taipei$osm_multipolygons$geometry
+sf_taipei <-  sf_unnamed_taipei$osm_multipolygons
+class(sf_taipei)
+```
+
+```{r}
+plot_ly() %>%
+  add_sf(
+    data=sf_taipei
+  ) %>%
+  add_sf(
+    data=sf_heritage
+  )
+```
+
+```{r}
+sf_taipei$geometry
+```
+```{r}
+bb_taipei <- sf::st_bbox(sf_taipei$geometry)
+sf::st_crop(sf_heritage, bb_taipei) -> sf_heritage
+```
+
+
+```{r}
+sf_heritage$geometry
+```
+
+```{r}
+crsX <- sf::st_crs(sf_taipei$geometry)
+```
+
+
+```{r}
+sf::st_set_crs(sf_heritage$geometry, crsX) -> sf_heritage$geometry
+```
+
+```{r}
+sf_heritage$geometry
+```
+
+
+```{r}
+plot_ly() %>%
+  add_sf(
+    data=sf_taipei
+  ) %>%
+  add_sf(
+    data=sf_heritage
+  )
 ```
 
