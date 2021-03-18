@@ -1,0 +1,85 @@
+---
+title: "互動式經濟資料視覺化"
+output: output_format
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(plotly)
+# Paste your drake Rdata loading here
+xfun::download_file("https://www.dropbox.com/s/zwlewu5enjlkrgy/maps_drake.Rdata?dl=1", mode="wb")
+load("maps_drake.Rdata")
+```
+
+
+```{r}
+.root <- rprojroot::is_rstudio_project$make_fix_file()
+drake$.updateCache()
+drake$source_plan()
+drake$makePlan()
+```
+
+load target
+```{r}
+drake$loadTarget$pltWithoutI()
+pltWithoutI
+```
+
+see original code
+```{r}
+drake$clipCommand$pltWithoutI() # store in your clipboard after running this command
+```
+
+paste in the place you want to see the code
+
+# Heritage
+
+```{r}
+drake$loadTarget$heritageData()
+```
+
+```{r}
+drake$loadTarget$sf_tpeCounties()
+drake$loadTarget$sf_unnamed_taipei()
+sf_tpe_multipolygons <- sf_unnamed_taipei$osm_multipolygons
+```
+
+```{r}
+sf_tpe_multipolygons$geometry %>% class()
+```
+
+```{r}
+sf_tpe_multipolygons$geometry[[1]]
+sf_tpe_multipolygons$name[[1]]
+```
+
+sfc <-  sfg (multipolygon) <- c(121.4588 25.12292), ...,  c(121.4588 25.12292)
+
+```{r}
+xfun::download_file("https://www.dropbox.com/s/s4mv5ebhsqanpew/heritage.Rdata?dl=1", mode="wb")
+load("heritage.Rdata")
+```
+
+```{r}
+library(sf)
+```
+
+```{r}
+list_points <- vector("list", length(nrow()))
+heritageData %>%
+  select(caseName, longitude, latitude) %>%
+  na.omit() -> heritageDataComplete
+```
+
+
+```{r}
+heritageData[1, ][c("longitude", "latitude")] %>%
+  as.matrix() %>%
+  sf::st_point() ->
+```
+
