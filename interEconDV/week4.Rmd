@@ -76,10 +76,23 @@ heritageData %>%
   na.omit() -> heritageDataComplete
 ```
 
+```{r}
+heritageDataComplete[1, ][c("longitude", "latitude")]
+```
 
 ```{r}
-heritageData[1, ][c("longitude", "latitude")] %>%
+heritageDataComplete[1, ][c("longitude", "latitude")] %>%
   as.matrix() %>%
-  sf::st_point() ->
+  sf::st_point() 
+```
+```{r}
+list_points = vector("list", length(nrow(heritageDataComplete)))
+for(i in 1:nrow(heritageDataComplete)){
+  list_points[[i]] = {
+    heritageDataComplete[i, ][c("longitude", "latitude")] %>%
+      as.matrix() %>%
+      sf::st_point()
+  }
+}
 ```
 
