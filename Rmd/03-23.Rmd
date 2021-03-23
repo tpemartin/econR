@@ -1,0 +1,229 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Makecondition
+
+```{r makecondition}
+library(reticulate)
+use_condaenv("r-reticulate")
+
+library(econR) # 經濟模型程式設計專題用
+```
+
+```{python}
+class Consumer:
+    # same prices
+    prices = (5, 7)
+    
+    # difference
+    def __init__(self, I, params):
+        self.I = I
+        self.params = params
+    
+    def preference(self, x):
+        x1, x2 = x
+        alpha, beta = self.params # heterogeneous parameters
+        u = x1**alpha * x2**beta
+        return u
+    
+    def validate_c(self, x):
+        x1, x2 = x
+        p_x1, p_x2 = Consumer.prices # homogeneous parameters
+        if p_x1*x1 + p_x2*x2 <= self.I:
+            return x
+        else:
+            return None
+
+# EOF
+```
+
+```{python}
+consumer11_100 = Consumer(100, (1,1))
+consumer35_250 = Consumer(250, (3,5))
+```
+```{python}
+print('homogeneous price: ' + str(consumer11_100.prices))
+consumer11_100.I
+consumer11_100.params
+```
+
+```{r}
+as.list()
+as.character()
+```
+
+
+```{python}
+list(obj)
+str(obj)
+```
+
+
+
+```{python}
+print('homogeneous price: ' + str(consumer35_250.prices))
+consumer35_250.I
+consumer35_250.params
+```
+
+```{python}
+consumer11_100.I
+consumer11_100.I = 220
+consumer11_100.I # instance variable
+
+```
+
+```{r}
+consumer
+```
+
+
+```{python}
+Consumer.prices = (3,3)
+```
+
+
+```{python}
+consumer11_100.prices
+consumer35_250.prices
+```
+```{python}
+# change an instance's class variable
+consumer11_100.prices = (5, 5)
+consumer11_100.prices
+# WILL NOT change the other instance's class variable
+consumer35_250.prices
+```
+
+```{python}
+consumer11_100.__class__.prices
+consumer35_250.__class__.prices
+```
+
+```{python}
+class Demand:#1.2 practice Construct a Demand class 
+    def __init__(self, params):
+        assert (
+          type(params) is tuple # alternative must be a tuple
+          and len(params) == 2
+          and all([ type(paramsi) is int or type(paramsi) is float for paramsi in params])
+        ), "alpha, beta must be a tuple of two numbers."
+        self.params = params
+    def q(self,p):#1.1 practice individual demand function
+        assert (
+          (type(p) is int or type(p) is float) 
+          and (p > 0)
+        ), "Price should be numeric value and greater than zero"
+        alpha, beta = self.params
+        q = alpha-beta*p
+        if q  >= 0: #Guarantee that the quantity is greater than zero
+            return q
+        else:
+            return "Violation of the guarantee that the quantity is greater than zero"
+
+# EOF
+```
+
+
+```{python}
+params = (10,2)#Set params for an individual demand function which alpha=10、beta=2
+demand10_2 = Demand(params) # generate a demand instance
+demand10_2.q(2)#returns the quantity demanded at price=2
+
+# EOF
+```
+
+
+```{r}
+dunif(0.3, 0, 0.5) # density at 0.3 for uniform(0, 0.5)
+punif(0.3, 0, 0.5) # cdf at 0.3 for uniform(0, 0.5)
+qunif(0.5, 0, 0.5) # quantile of 0.5 (ie. median) of uniform(0, 0.5)
+runif(10, 0, 0.5)
+```
+
+```{r}
+# no seed
+rns_noSeed = runif(n=5, 0, 0.5)
+print(rns_noSeed)
+```
+
+```{r}
+# with seed
+set.seed(2020)
+rns_seed = runif(n=5, 0, 0.5)
+print(rns_seed)
+```
+
+```{python}
+from numpy.random import default_rng
+
+```
+
+```{python}
+rng_noSeed = default_rng() # no seed
+```
+
+
+```{python}
+rns_noSeed = rng_noSeed.uniform(50, 100, size=5)
+print(rns_noSeed)
+```
+
+```{python}
+```
+
+
+```{python}
+rng_seed = default_rng(2038) # with seed 2038
+rns_seed = rng_seed.uniform(50, 100, size=5)
+print(rns_seed)
+```
+
+```{python}
+rng_seed = default_rng(29382992) # with seed 2038
+rns_seed = rng_seed.uniform(50, 100, size=20)
+print(rns_seed)
+```
+
+```{python}
+ind_demands[0] = Demand(...)
+ind_demands[1] = Demand(...)
+:
+ind_demands[500] = Demand(...)
+```
+
+```{python}
+ind_demands = [
+  Demand((rv1, rv2)) for i in ...]
+```
+
+
+```{python}
+from numpy.random import default_rng
+rng_alpha = default_rng(2038)
+rng_beta = default_rng(2022)
+
+ind_demands = [
+  Demand(
+    (
+     float(rng_alpha.uniform(50, 100, 1)), 
+     float(rng_beta.uniform(2, 30, 1))
+    )
+   ) for i in range(500)]
+```
+
+```{python}
+ind_demands[0].q(2)
+ind_demands[1].q(2)
+```
+
+```{python}
+[ ind_demands[i].q(2) for i in range(len(ind_demands))]
+```
+

@@ -436,6 +436,7 @@ def preference(x, params=params):
 
 # EOF
 ```
+
 #### validate_c
 
 ```{python}
