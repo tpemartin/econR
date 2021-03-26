@@ -10,5 +10,5 @@ output_path <- function(foldername="docs"){
   .root <- rprojroot::is_rstudio_project$make_fix_file()
   outputPath <- file.path(dirname(.root()), foldername)
   if(!dir.exists(outputPath)) dir.create(outputPath)
-  return(output_path)
+  return(outputPath)
 } 
