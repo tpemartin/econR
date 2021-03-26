@@ -33,11 +33,13 @@ convertHTML2RTags <- function(string){
   require(dplyr)
   string %>%
     stringr::str_replace_all("<(?!/)", "tags$") %>%
-    stringr::str_replace_all("</[a-z]+>", ")") %>%
-    stringr::str_replace_all('(?<=tags\\$[a-z]{1,10})\\s', "(") %>%
+    stringr::str_replace_all("</[a-z]+[1-6]?>", ")") %>%
+    stringr::str_replace_all('(?<=tags\\$[a-z]{1,10}[1-6]?)\\s', "(") %>%
     stringr::str_replace_all('(?<=\\"[:alnum:]{1,15}\\")[\\s]+(?=[:alpha:])', ", ") %>%
     stringr::str_replace_all(">", ", ") %>%
-    add_charQuotation() -> output
+    add_charQuotation() %>%
+    fix_tagHasNoLeftParenthesis() %>%
+    fix_inputAfterQuotationHasNoComma() -> output
   output %>% clipr::write_clip()
   invisible(output)
 }
@@ -53,4 +55,27 @@ add_charQuotation <- function(txt){
     ) -> txt
   }
   return(txt)
+}
+revise_by_case <- function(txt, txt_extracted, txt2bReplaced){
+
+  for(i in seq_along(txt_extracted)){
+    stringr::str_replace_all(
+      txt,
+      pattern = txt_extracted[[i]],
+      txt2bReplaced[[i]]
+    ) -> txt
+  }
+  return(txt)
+}
+fix_tagHasNoLeftParenthesis <- function(txt){
+  # txt <- 'tags$li, tags$a(class="grey-text text-lighten-3" href="#!"," Link 1"))'
+  txt <- unlist(stringr::str_replace_all(
+    txt,
+    "(?<=tags\\$[:alpha:]{1,10}[1-6]?),","("
+  ))
+  return(txt)
+}
+fix_inputAfterQuotationHasNoComma <- function(txt){
+  # txt <- 'tags$li( tags$a(class="grey-text text-lighten-3" href="#!"," Link 1"))'
+  stringr::str_replace_all(txt, "[\"'](?=([\\s]{0,10}[:alpha:]{1,10}=))","\",")
 }
