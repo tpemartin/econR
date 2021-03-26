@@ -11,6 +11,8 @@ Web <- function(){
   web$htmlDependencies <- list()
   web$htmlDependencies$materialise <- materialise
 
+  web$output_path <- output_path
+
   return(web)
 }
 
