@@ -1,3 +1,9 @@
+#' web instance generator
+#'
+#' @return
+#' @export
+#'
+#' @examples None
 Web <- function(){
   web <- new.env()
   web$convertHTML2RTags <- convertHTML2RTags
