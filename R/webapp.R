@@ -9,7 +9,12 @@ Web <- function(){
   web$convertHTML2RTags <- convertHTML2RTags
 
   web$htmlDependencies <- list()
-  web$htmlDependencies$materialise <- materialise
+  web$htmlDependencies <-
+    append(
+      web$htmlDependencies,
+      html_dependency()
+    )
+  # web$htmlDependencies$materialise <- materialise
 
   web$output_path <- output_path
 
