@@ -16,8 +16,9 @@ Web <- function(){
     )
   # web$htmlDependencies$materialise <- materialise
 
-  web$output_path <- output_path
+  web$output_filepath <- web_output_filepath(web)
 
+  web$browse <- browse_generator(web)
   return(web)
 }
 
@@ -78,4 +79,35 @@ fix_tagHasNoLeftParenthesis <- function(txt){
 fix_inputAfterQuotationHasNoComma <- function(txt){
   # txt <- 'tags$li( tags$a(class="grey-text text-lighten-3" href="#!"," Link 1"))'
   stringr::str_replace_all(txt, "[\"'](?=([\\s]{0,10}[:alpha:]{1,10}=))","\",")
+}
+browse_generator <- function(web){
+  function(){
+    assertthat::assert_that(
+      exists("foldername", envir=web),
+      msg="Please set up web$foldername, like web$foldername <- 'docs'."
+    )
+    assertthat::assert_that(
+      exists("html_filename", envir=web),
+      msg="Please set up web$html_filename, like web$html_filename <- 'index.html'."
+    )
+    htmlfilepath <- file.path(
+      web$output_path(web$foldername),
+      web$html_filename
+    )
+    browseURL(htmlfilepath)
+
+  }
+}
+web_output_filepath <- function(web){
+  function(){
+    .root <- rprojroot::is_rstudio_project$make_fix_file()
+    output_folder <-
+      file.path(dirname(.root()), web$foldername)
+    if(!dir.exists(output_folder)) dir.create(output_folder)
+    output_filepath <-
+      file.path(
+        output_folder, web$html_filename
+      )
+    return(output_filepath)
+  }
 }
