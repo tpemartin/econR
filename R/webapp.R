@@ -6,7 +6,7 @@
 #' @examples None
 Web <- function(){
   web <- new.env()
-  web$convertHTML2RTags <- convertHTML2RTags
+  # web$convertHTML2RTags <- convertHTML2RTags
 
   web$htmlDependencies <- list()
   web$htmlDependencies <-
@@ -19,6 +19,14 @@ Web <- function(){
   web$output_filepath <- web_output_filepath(web)
 
   web$browse <- browse_generator(web)
+
+  web$translate_HTML2rTags <- convertHTML2RTags
+
+  web$translate_HTML_fromClipboard <- function(web){
+    function(){
+      web$translate_HTML2rTags(clipr::read_clip())
+    }
+  }
   return(web)
 }
 
@@ -90,11 +98,11 @@ browse_generator <- function(web){
       exists("html_filename", envir=web),
       msg="Please set up web$html_filename, like web$html_filename <- 'index.html'."
     )
-    htmlfilepath <- file.path(
-      web$output_path(web$foldername),
-      web$html_filename
-    )
-    browseURL(htmlfilepath)
+    # htmlfilepath <- file.path(
+    #   web$output_path(web$foldername),
+    #   web$html_filename
+    # )
+    browseURL(web$output_filepath())
 
   }
 }
