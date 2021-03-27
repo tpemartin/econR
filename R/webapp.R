@@ -22,11 +22,8 @@ Web <- function(){
 
   web$translate_HTML2rTags <- convertHTML2RTags
 
-  web$translate_HTML_fromClipboard <- function(web){
-    function(){
-      web$translate_HTML2rTags(clipr::read_clip())
-    }
-  }
+  web$translate_HTML_fromClipboard <- translate_HTML_fromClipboard(web)
+
   return(web)
 }
 
@@ -117,5 +114,10 @@ web_output_filepath <- function(web){
         output_folder, web$html_filename
       )
     return(output_filepath)
+  }
+}
+translate_HTML_fromClipboard <- function(web){
+  function(){
+    web$translate_HTML2rTags(clipr::read_clip())
   }
 }
