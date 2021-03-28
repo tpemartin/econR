@@ -2,6 +2,7 @@
 
 export(Pily)
 export(Web)
+export(attachHtmlToolsBrowsable)
 export(computeEconomicGain)
 export(compute_opportunityCost)
 export(convertHTML2RTags)

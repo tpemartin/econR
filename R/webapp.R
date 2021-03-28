@@ -18,11 +18,16 @@ Web <- function(){
 
   web$output_filepath <- web_output_filepath(web)
 
-  web$browse <- browse_generator(web)
+  # web$browse <- browse_generator(web)
 
   web$translate_HTML2rTags <- convertHTML2RTags
 
   web$translate_HTML_fromClipboard <- translate_HTML_fromClipboard(web)
+
+  web$browse <- function(){
+     .GlobalEnv$drake$loadTarget$html_complete()
+     htmltools::browsable(html_complete)
+   }
 
   return(web)
 }
@@ -119,5 +124,18 @@ web_output_filepath <- function(web){
 translate_HTML_fromClipboard <- function(web){
   function(){
     web$translate_HTML2rTags(clipr::read_clip())
+  }
+}
+#' Generate a browse function
+#'
+#' @param html_complete A shiny tag list
+#'
+#' @return
+#' @export
+#'
+#' @examples None
+attachHtmlToolsBrowsable <- function(html_complete){
+  function(){
+    htmltools::browsable(html_complete)
   }
 }
