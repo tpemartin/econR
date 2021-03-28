@@ -150,12 +150,15 @@ config_cssJsPath_generator <- function(web){
       web$cssJsPath <- cssJsPath
     } else {
       .root <- rprojroot::is_rstudio_project$make_fix_file()
-      file.path(
-        .root(),
-        {
-          rstudioapi::getSourceEditorContext() -> currentSource
-          basename(dirname(currentSource$path))
-        }) -> web$cssJsPath
+      # file.path(
+      #   .root(),
+      #   {
+      #     rstudioapi::getSourceEditorContext() -> currentSource
+      #     dirname(currentSource$path)
+      #     basename(dirname(currentSource$path))
+      #   }) -> web$cssJsPath
+      rstudioapi::getSourceEditorContext() -> currentSource
+      dirname(currentSource$path) -> web$cssJsPath
     }
   }
 }
