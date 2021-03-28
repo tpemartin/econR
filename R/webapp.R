@@ -25,9 +25,14 @@ Web <- function(){
   web$translate_HTML_fromClipboard <- translate_HTML_fromClipboard(web)
 
   web$browse <- function(){
-     .GlobalEnv$drake$loadTarget$html_complete()
-     htmltools::browsable(html_complete)
-   }
+    httwX <- servr::httw(
+      dir=dirname(.GlobalEnv$web$output_filepath()),
+      baseurl=.GlobalEnv$web$html_filename)
+    .GlobalEnv$web$server <- httwX
+  }
+
+  web$config_cssJsPath <- config_cssJsPath_generator(web)
+  web$config_cssJsPath()
 
   return(web)
 }
@@ -137,5 +142,20 @@ translate_HTML_fromClipboard <- function(web){
 attachHtmlToolsBrowsable <- function(html_complete){
   function(){
     htmltools::browsable(html_complete)
+  }
+}
+config_cssJsPath_generator <- function(web){
+  function(cssJsPath=NULL){
+    if(!is.null(cssJsPath)){
+      web$cssJsPath <- cssJsPath
+    } else {
+      .root <- rprojroot::is_rstudio_project$make_fix_file()
+      file.path(
+        .root(),
+        {
+          rstudioapi::getSourceEditorContext() -> currentSource
+          basename(dirname(currentSource$path))
+        }) -> web$cssJsPath
+    }
   }
 }
