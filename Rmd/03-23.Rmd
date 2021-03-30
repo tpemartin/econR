@@ -227,3 +227,121 @@ ind_demands[1].q(2)
 [ ind_demands[i].q(2) for i in range(len(ind_demands))]
 ```
 
+### Mark Answer
+
+```{python}
+class Demand:#1.2 practice Construct a Demand class 
+    def __init__(self, params):
+        assert (
+          type(params) is tuple # alternative must be a tuple
+          and len(params) == 2
+          and all([ type(paramsi) is int or type(paramsi) is float for paramsi in params])
+        ), "alpha, beta must be a tuple of two numbers."
+        self.params = params
+    def q(self,p):#1.1 practice individual demand function
+        assert (
+          (type(p) is int or type(p) is float) 
+          and (p > 0)
+        ), "Price should be numeric value and greater than zero"
+        alpha, beta = self.params
+        q = alpha-beta*p
+        if q  >= 0: #Guarantee that the quantity is greater than zero
+            return q
+        else:
+            return 0#Return zero if q is negative number
+
+params = (10,2)#Set params for an individual demand function which alpha=10、beta=2
+demand = Demand(params) # generate a demand instance
+demand.q(2)#returns the quantity demanded at price=2
+
+# EOF
+```
+
+
+
+```{python}
+class Demand:#1.2 practice Construct a Demand class 
+    def __init__(self, params):
+        assert (
+          type(params) is tuple # alternative must be a tuple
+          and len(params) == 2
+          and all([ type(paramsi) is int or type(paramsi) is float for paramsi in params])
+        ), "alpha, beta must be a tuple of two numbers."
+        self.params = params
+    def q(self,p):#1.1 practice individual demand function
+        assert (
+          (type(p) is int or type(p) is float) 
+          and (p > 0)
+        ), "Price should be numeric value and greater than zero"
+        alpha, beta = self.params
+        
+        # The following part can be enhanced a little:
+        
+        # q = alpha-beta*p
+        # if q  >= 0: #Guarantee that the quantity is greater than zero
+        #     return q
+        # else:
+        #     return 0#Return zero if q is negative number
+        q = max(0, alpha-beta*p)
+        return q
+
+params = (10,2)#Set params for an individual demand function which alpha=10、beta=2
+demand = Demand(params) # generate a demand instance
+demand.q(2)#returns the quantity demanded at price=2
+
+# EOF
+```
+
+
+***
+
+```{python}
+from numpy.random import default_rng
+rng_alpha = default_rng(2038)
+rng_beta = default_rng(2022)
+
+ind_demands = [
+  Demand(
+    (
+     float(rng_alpha.uniform(50, 100, 1)), 
+     float(rng_beta.uniform(2, 30, 1))
+    )
+   ) for i in range(500)]
+```
+
+
+```{python}
+def aggregate_demand(p,demands):
+    sum=0
+    for qi in [demands[i].q(p) for i in range(len(demands))]:
+       sum += qi # Good job. 
+    return round(sum/len(demands))
+
+aggregate_demand(2,ind_demands) #returns an aggregated quantity demanded at the price of 2.
+
+
+```
+
+  * `[demands[i].q(p) for i in range(len(demands))]` will create a list that takes up some memory space. 
+
+```{python}
+def aggregate_demand(p,demands):
+    sum=0
+    for i in range(len(demands)): # iterable generator save your memory space
+       sum += demands[i].q(p) # compute on-site will save your memory space
+    return round(sum) # aggregate does not require averaging
+
+aggregate_demand(2,ind_demands) #returns an aggregated quantity demanded at the price of 2.
+
+
+```
+
+```{python}
+demands=ind_demands
+def aggregate_demand(p, demands):
+    return sum([demands[i].q(p) for i in range(len(demands))]) # sum function is very fast, can work on list/tuple
+
+aggregate_demand(2, ind_demands)
+aggregate_demand(5, ind_demands)
+```
+
