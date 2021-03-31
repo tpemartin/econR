@@ -48,6 +48,7 @@ Web <- function(){
 convertHTML2RTags <- function(string){
   require(dplyr)
   string %>%
+    translate_imgTag() %>%
     stringr::str_replace_all("<(?!/)", "tags$") %>%
     stringr::str_replace_all("</[a-z]+[1-6]?>", ")") %>%
     stringr::str_replace_all('(?<=tags\\$[a-z]{1,10}[1-6]?)\\s', "(") %>%
@@ -55,7 +56,8 @@ convertHTML2RTags <- function(string){
     stringr::str_replace_all(">", ", ") %>%
     add_charQuotation() %>%
     fix_tagHasNoLeftParenthesis() %>%
-    fix_inputAfterQuotationHasNoComma() -> output
+    fix_inputAfterQuotationHasNoComma() -> tempOutput
+  add_quote2attributeNameWithDash(tempOutput) -> output
   output %>% clipr::write_clip()
   invisible(output)
 }
@@ -161,4 +163,39 @@ config_cssJsPath_generator <- function(web){
       dirname(currentSource$path) -> web$cssJsPath
     }
   }
+}
+add_quote2attributeNameWithDash <- function(txt){
+  stringr::str_extract_all(txt,
+                           "[:alpha:]{1,10}-[:alpha:]{1,10}(?=\\=)") -> extractedTxt
+  unlist(extractedTxt) -> extractedTxt
+  paste0(", `",extractedTxt,"`") -> replacedTxt
+  revise_by_case(txt, extractedTxt, replacedTxt)
+}
+translate_imgTag <- function(txt){
+  count = 0
+  maxCount = 100
+  stringr::str_locate(txt, "<img") -> whichLocsHaveImgTag
+  flag_continue = !all(is.na(whichLocsHaveImgTag))
+
+  while(flag_continue && count <= maxCount){
+    loc_startOpeningArrow <- whichLocsHaveImgTag[1, "start"]
+    loc_endOpeningArrow <- whichLocsHaveImgTag[1, "end"]
+
+    stringr::str_locate_all(txt, ">")  %>% {.[[1]][,1]} -> whichLocsHaveClosingArrow
+    loc_pairedClosingArrow <-
+      whichLocsHaveClosingArrow[min(which(whichLocsHaveClosingArrow > loc_startOpeningArrow))]
+    txt2bReplaced <- stringr::str_sub(txt, loc_startOpeningArrow, loc_pairedClosingArrow)
+    stringr::str_replace_all(txt2bReplaced, "<img ", "tags$img(") %>%
+      stringr::str_replace_all(">",")") -> txt2bcome
+    stringr::str_replace_all(
+      txt,
+      stringr::fixed(txt2bReplaced),
+      txt2bcome
+    ) -> txt
+
+    stringr::str_locate(txt, "<img") -> whichLocsHaveImgTag
+    flag_continue = !all(is.na(whichLocsHaveImgTag))
+
+  }
+  return(txt)
 }
