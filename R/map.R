@@ -18,7 +18,6 @@ convert_poly_multipoly_into_multipolyOnly <- function(sf_data){
         polyCoord[pickL1X, c("X","Y")] -> XYCoords
         list_polygon <- append(list_polygon, list(XYCoords))
       }
-      head(polyCoord)
       sf::st_multipolygon(
         list(
           list_polygon
