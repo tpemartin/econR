@@ -34,6 +34,8 @@ Web <- function(){
   web$config_cssJsPath <- config_cssJsPath_generator(web)
   web$config_cssJsPath()
 
+  web$update_css_js <- update_css_js(web)
+
   return(web)
 }
 
@@ -198,4 +200,43 @@ translate_imgTag <- function(txt){
 
   }
   return(txt)
+}
+update_css_js <- function(web){
+  function(){
+    cssFolder <-
+      file.path(web$cssJsPath,"css")
+    jsFolder <-
+      file.path(web$cssJsPath,"js")
+
+    .GlobalEnv$drake$loadTarget$myDependency()
+    scriptFrom =
+      file.path(myDependency$src,
+                myDependency$script)
+    styleFrom =
+      file.path(myDependency$src,
+                myDependency$stylesheet)
+    libName = paste0(myDependency$name,"-",myDependency$version)
+    libPath = file.path(
+      dirname(web$output_filepath()),"lib",
+      libName
+    )
+    scriptTo =
+      file.path(libPath,
+                myDependency$script)
+    styleTo =
+      file.path(libPath,
+                myDependency$stylesheet)
+
+    file.copy(
+      from = scriptFrom,
+      to = scriptTo,
+      overwrite = T
+    )
+    file.copy(
+      from = styleFrom,
+      to = styleTo,
+      overwrite = T
+    )
+  }
+
 }
