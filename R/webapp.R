@@ -49,7 +49,7 @@ Web <- function(){
 #' @examples None
 convertHTML2RTags <- function(string){
   require(dplyr)
-  string %>%
+  string %>% paste0(collapse = "\n") %>%
     translate_imgTag() %>%
     stringr::str_replace_all("<(?!/)", "tags$") %>%
     stringr::str_replace_all("</[a-z]+[1-6]?>", ")") %>%
