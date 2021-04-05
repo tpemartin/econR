@@ -51,6 +51,7 @@ convertHTML2RTags <- function(string){
   require(dplyr)
   string %>% paste0(collapse = "\n") %>%
     translate_imgTag() %>%
+    translate_inputTag() %>%
     stringr::str_replace_all("<(?!/)", "tags$") %>%
     stringr::str_replace_all("</[a-z]+[1-6]?>", ")") %>%
     stringr::str_replace_all('(?<=tags\\$[a-z]{1,10}[1-6]?)\\s', "(") %>%
@@ -60,6 +61,7 @@ convertHTML2RTags <- function(string){
     fix_tagHasNoLeftParenthesis() %>%
     fix_inputAfterQuotationHasNoComma() -> tempOutput
   add_quote2attributeNameWithDash(tempOutput) -> output
+  output %>% fix_smallThings() -> output
   output %>% clipr::write_clip()
   invisible(output)
 }
@@ -239,4 +241,96 @@ update_css_js <- function(web){
     )
   }
 
+}
+translate_nonPairedTag <- function(tagName){
+  function(txt){
+    count = 0
+    maxCount = 100
+    stringr::str_locate(txt, glue::glue("<{tagName}")) -> whichLocsHaveImgTag
+    flag_continue = !all(is.na(whichLocsHaveImgTag))
+
+    while(flag_continue && count <= maxCount){
+      loc_startOpeningArrow <- whichLocsHaveImgTag[1, "start"]
+      loc_endOpeningArrow <- whichLocsHaveImgTag[1, "end"]
+
+      stringr::str_locate_all(txt, ">")  %>% {.[[1]][,1]} -> whichLocsHaveClosingArrow
+      loc_pairedClosingArrow <-
+        whichLocsHaveClosingArrow[min(which(whichLocsHaveClosingArrow > loc_startOpeningArrow))]
+      txt2bReplaced <- stringr::str_sub(txt, loc_startOpeningArrow, loc_pairedClosingArrow)
+      stringr::str_replace_all(txt2bReplaced,
+                               glue::glue("<{tagName} "),
+                               glue::glue("tags${tagName}(")) %>%
+        stringr::str_replace_all(">",")") -> txt2bcome
+      stringr::str_replace_all(
+        txt,
+        stringr::fixed(txt2bReplaced),
+        txt2bcome
+      ) -> txt
+
+      stringr::str_locate(txt, glue::glue("<{tagName}")) -> whichLocsHaveImgTag
+      flag_continue = !all(is.na(whichLocsHaveImgTag))
+
+    }
+
+    return(txt)
+  }
+}
+translate_inputTag <-
+  translate_nonPairedTag("input")
+
+fix_smallThings <- function(txt){
+  stringr::str_replace_all(txt,
+                           stringr::fixed("/)"), ")") -> txt
+  fix_inputTagArgsHaveNoValue(txt) -> txt
+  return(txt)
+}
+fix_inputTagArgsHaveNoValue <- function(string){
+  flag_hasArgsInsideInputTag <-
+    stringr::str_detect(
+      string,
+      "(?<=(tags\\$input\\())[^\\(\\)]+(?=(\\)))"
+    )
+  if(flag_hasArgsInsideInputTag)
+  {
+    stringr::str_extract_all(
+      string,
+      "(?<=(tags\\$input\\())[^\\(\\)]+(?=(\\)))"
+    ) -> allInputArgs
+  }
+
+  # .x =1
+  for(.x in seq_along(allInputArgs[[1]]))
+  {
+    inputArgsX <- allInputArgs[[1]][[.x]]
+    flag_someArgsHaveNoValue <-
+      {
+        stringr::str_detect(
+          inputArgsX,
+          "\\b[[:alpha:]-]+\\b(?![\\=\"\'])"
+        )
+      }
+    if(!flag_someArgsHaveNoValue){
+      next
+    } else {
+      argStringHasNoValue <-
+        stringr::str_extract(
+          inputArgsX,
+          "\\b[[:alpha:]-]+\\b(?![\\=\"\'])"
+        )
+      argStringFixed <-
+        paste0(
+          "`",argStringHasNoValue,"`=NA"
+        )
+      stringr::str_replace(
+        inputArgsX, stringr::fixed(argStringHasNoValue), argStringFixed
+      ) -> inputArgsXFixed
+    }
+
+    stringr::str_replace(
+      string,
+      stringr::fixed(inputArgsX),
+      inputArgsXFixed
+    ) -> string
+  }
+  return(string)
 }
