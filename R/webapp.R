@@ -306,17 +306,19 @@ fix_inputTagArgsHaveNoValue <- function(string){
       {
         stringr::str_detect(
           inputArgsX,
-          "\\b[[:alpha:]-]+\\b(?![\\=\"\'])"
+          "\\b[[a-zA-Z0-9]-]+\\b(?![\\=\"\'[:graph:]])" #"\\b[[:alpha:]\\-]+\\b(?![\\=\"\'])"
         )
       }
     if(!flag_someArgsHaveNoValue){
       next
     } else {
+      # browser()
       argStringHasNoValue <-
         stringr::str_extract(
           inputArgsX,
-          "\\b[[:alpha:]-]+\\b(?![\\=\"\'])"
+          "\\b[[a-zA-Z0-9]-]+\\b(?![\\=\"\'[:graph:]])"
         )
+      # browser()
       argStringFixed <-
         paste0(
           "`",argStringHasNoValue,"`=NA"
