@@ -296,43 +296,44 @@ fix_inputTagArgsHaveNoValue <- function(string){
       string,
       "(?<=(tags\\$input\\())[^\\(\\)]+(?=(\\)))"
     ) -> allInputArgs
-  }
-
-  # .x =1
-  for(.x in seq_along(allInputArgs[[1]]))
-  {
-    inputArgsX <- allInputArgs[[1]][[.x]]
-    flag_someArgsHaveNoValue <-
-      {
-        stringr::str_detect(
-          inputArgsX,
-          "\\b[[a-zA-Z0-9]-]+\\b(?![\\=\"\'[:graph:]])" #"\\b[[:alpha:]\\-]+\\b(?![\\=\"\'])"
-        )
+    # .x =1
+    for(.x in seq_along(allInputArgs[[1]]))
+    {
+      inputArgsX <- allInputArgs[[1]][[.x]]
+      flag_someArgsHaveNoValue <-
+        {
+          stringr::str_detect(
+            inputArgsX,
+            "\\b[[a-zA-Z0-9]-]+\\b(?![\\=\"\'[:graph:]])" #"\\b[[:alpha:]\\-]+\\b(?![\\=\"\'])"
+          )
+        }
+      if(!flag_someArgsHaveNoValue){
+        next
+      } else {
+        # browser()
+        argStringHasNoValue <-
+          stringr::str_extract(
+            inputArgsX,
+            "\\b[[a-zA-Z0-9]-]+\\b(?![\\=\"\'[:graph:]])"
+          )
+        # browser()
+        argStringFixed <-
+          paste0(
+            "`",argStringHasNoValue,"`=NA"
+          )
+        stringr::str_replace(
+          inputArgsX, stringr::fixed(argStringHasNoValue), argStringFixed
+        ) -> inputArgsXFixed
       }
-    if(!flag_someArgsHaveNoValue){
-      next
-    } else {
-      # browser()
-      argStringHasNoValue <-
-        stringr::str_extract(
-          inputArgsX,
-          "\\b[[a-zA-Z0-9]-]+\\b(?![\\=\"\'[:graph:]])"
-        )
-      # browser()
-      argStringFixed <-
-        paste0(
-          "`",argStringHasNoValue,"`=NA"
-        )
-      stringr::str_replace(
-        inputArgsX, stringr::fixed(argStringHasNoValue), argStringFixed
-      ) -> inputArgsXFixed
-    }
 
-    stringr::str_replace(
-      string,
-      stringr::fixed(inputArgsX),
-      inputArgsXFixed
-    ) -> string
+      stringr::str_replace(
+        string,
+        stringr::fixed(inputArgsX),
+        inputArgsXFixed
+      ) -> string
+    }
   }
+
+
   return(string)
 }
