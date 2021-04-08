@@ -1,15 +1,19 @@
 Package: econR
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.2.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Title: Complementary package for courses in NTPU Econ department
+Version: 0.2.1
+Author: Martin Lin
+Maintainer: Martin Lin <mtlin@gm.ntpu.edu.tw>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
 Imports: 
+    clipr,
+    dplyr,
+    htmltools,
     rprojroot,
-    servr
+    servr,
+    stringr

@@ -62,6 +62,7 @@ convertHTML2RTags <- function(string){
     fix_inputAfterQuotationHasNoComma() -> tempOutput
   add_quote2attributeNameWithDash(tempOutput) -> output
   output %>% fix_smallThings() -> output
+  output %>% fix_stringUnquoted() -> output
   output %>% clipr::write_clip()
   invisible(output)
 }
@@ -336,4 +337,38 @@ fix_inputTagArgsHaveNoValue <- function(string){
 
 
   return(string)
+}
+get_string2beQuoted <- function(txt2){
+  stringr::str_extract_all(txt2,
+                           '(?<=([\\),\"]))[^\\),\"]*(?=\\))') -> txt3
+  txt3 <- unlist(txt3)
+  whichIsNotEmpty <- which(txt3 != "")
+  txt4 <- txt3[whichIsNotEmpty]
+  stringr::str_subset(
+    txt4, "(\n[\\s]*)", negate=T
+  ) -> txt5
+  return(txt5)
+}
+
+fix_stringUnquoted <- function(txt2){
+  get_string2beQuoted(txt2) -> txt3
+
+  for(.x in seq_along(txt3))
+  {
+    strExtracedX <- txt3[[.x]]
+    str2beReplacedX <- paste0("\"", txt3[[.x]], "\"")
+    revise_by_case(txt2,
+                   stringr::fixed(strExtracedX), str2beReplacedX) -> txt2
+
+  }
+
+  stringr::str_replace_all(
+    txt2,
+    "(?<=(\\)))[\\s]*[\"]", ", \""
+  ) -> txt4
+  stringr::str_replace_all(
+    txt4,
+    "(?<=(\\)))[\\s]*[\']", ", \'"
+  ) -> txt5
+  return(txt5)
 }
