@@ -63,6 +63,11 @@ convertHTML2RTags <- function(string){
   add_quote2attributeNameWithDash(tempOutput) -> output
   output %>% fix_smallThings() -> output
   output %>% fix_stringUnquoted() -> output
+
+  # change tags$!--...-- to #--...--
+  stringr::str_replace_all(output,
+                           stringr::fixed("tags$!"),"#") -> output
+
   output %>% clipr::write_clip()
   invisible(output)
 }
