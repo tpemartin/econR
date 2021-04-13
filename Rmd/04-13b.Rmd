@@ -1,0 +1,247 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Makecondition
+
+```{r makecondition}
+library(reticulate)
+use_condaenv("r-reticulate")
+
+library(econR) # 經濟模型程式設計專題用
+```
+
+
+### 6.1
+
+```{python}
+class Monopoly:
+    def __init__(self, mc, Qd):
+        self.mc=mc
+        self.Qd=Qd
+    
+    def cost(self, p):
+        return self.mc*self.Qd(p)
+    def revenue(self, p):
+        return p*self.Qd(p)
+    def profit(self, p):
+        return p*self.Qd(p) - self.mc *self.Qd(p)
+
+
+```
+
+```{python}
+def Qd(p):
+    return 100-2*p
+
+Qd(2)
+```
+
+
+```{python}
+monopoly=Monopoly(5, Qd)
+
+# instance variable
+monopoly.mc
+
+# instance method
+monopoly.Qd(3)
+monopoly.cost(3)
+monopoly.profit(3)
+```
+
+```{python}
+import numpy as np
+def Qd(p):
+    return np.maximum(np.zeros(len(p)),100-2*p)
+    # np.zeros: generate array of zeros
+    # np.maximum: compare two arrays elementwise and choose the maximal one
+
+prices = np.arange(1,101)
+Qd(prices)
+
+```
+```{python}
+from scipy import optimize
+
+monopoly=Monopoly(2, Qd)
+monopoly.cost(np.array([3]))
+monopoly.revenue(np.array([3]))
+monopoly.profit(np.array([3]))
+```
+```{python}
+def negative_conversion(fn):
+    def neg_fun(p):
+        return -1*fn(p)
+    return neg_fun
+
+```
+
+```{python}
+def fun0(x):
+    return 2*x
+
+fun1 = negative_conversion(fun0)
+
+fun0(2)
+fun1(2)
+```
+
+```{python}
+objective2=negative_conversion(monopoly.profit)
+
+monopoly=Monopoly(5, Qd)
+monopoly.profit(np.array([3]))
+
+objective2(np.array([3]))
+```
+
+```{python}
+def monopoly_optim(x0=3):
+    optim = optimize.minimize(
+      fun=negative_conversion(monopoly.profit),
+      x0=np.array([x0])
+    )
+    return optim
+
+monopoly_optim()
+```
+
+```{python}
+class Monopoly:
+    def __init__(self, mc, Qd):
+        self.mc=mc
+        self.Qd=Qd
+    
+    def cost(self, p):
+        return self.mc*self.Qd(p)
+    def revenue(self, p):
+        return p*self.Qd(p)
+    def profit(self, p):
+        return p*self.Qd(p) - self.mc *self.Qd(p)
+    def optimize(self, x0=3):
+        optim = optimize.minimize(
+          fun=negative_conversion(self.profit),
+          x0=np.array([x0])
+        )
+        self.optim_p = optim.x
+        self.optim_q = self.Qd(self.optim_p)
+        return optim
+
+```
+
+```{python}
+monopoly2 = Monopoly(5, Qd)
+# instance variable
+monopoly2.mc
+# instance method
+monopoly2.optimize()
+
+# new instance variable
+monopoly2.optim_p
+monopoly2.optim_q
+```
+```{python}
+class MarketDemand:
+    def __init__(self, intercept, slope):
+        self.intercept = intercept
+        self.slope = slope
+    def Qd(self, p):
+        return self.intercept - self.slope * p
+
+```
+
+```{python}
+marketDemand = MarketDemand(500, 7)
+marketDemand.Qd(3)
+
+monopoly3 = Monopoly(5, marketDemand.Qd)
+monopoly3.optimize()
+monopoly3.optim_p
+monopoly3.optim_q
+```
+```{python}
+marketDemand2 = MarketDemand(380, 5)
+Qd = marketDemand2.Qd
+
+# optimization will give the same result
+monopoly3.optimize()
+monopoly3.optim_p
+monopoly3.optim_q
+```
+```{python}
+@classmethod
+def Qd(cls, p):
+    return cls.intercep - cls.slope*p
+```
+
+
+```{python}
+class Monopoly:
+    intercept=100
+    slope=2
+    
+    def __init__(self, mc):
+        self.mc=mc
+    
+    def cost(self, p):
+        return self.mc*self.__class__.Qd(p)
+    def revenue(self, p):
+        return p*self.__class__.Qd(p)
+    def profit(self, p):
+        return p*self.__class__.Qd(p) - self.mc *self.__class__.Qd(p)
+    def optimize(self, x0=3):
+        optim = optimize.minimize(
+          fun=negative_conversion(self.profit),
+          x0=np.array([x0])
+        )
+        self.optim_p = optim.x
+        self.optim_q = self.__class__.Qd(self.optim_p)
+        return optim
+      
+    @classmethod
+    def Qd(cls, p):
+        return cls.intercept - cls.slope*p
+
+```
+
+```{python}
+monopoly4 = Monopoly(5)
+
+# class variable:
+Monopoly.intercept #100
+Monopoly.slope #2
+
+# instance variable:
+monopoly4.mc
+
+# instance method:
+monopoly4.optimize()
+
+# additional instance variable:
+monopoly4.optim_p
+monopoly4.optim_q
+```
+
+```{python}
+Monopoly.intercept = 300
+Monopoly.slope = 8
+
+monopoly4.optimize()
+monopoly4.optim_q
+monopoly4.optim_p
+```
+```{python}
+Monopoly.intercept = 100
+Monopoly.slope = 2
+monopoly5 = Monopoly(5)
+
+monopoly5.optimize()
+monopoly5.optim_q
+```
+

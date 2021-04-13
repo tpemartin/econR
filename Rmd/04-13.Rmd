@@ -1,0 +1,367 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Makecondition
+
+```{r makecondition}
+library(reticulate)
+use_condaenv("r-reticulate")
+
+library(econR) # 經濟模型程式設計專題用
+```
+
+Class variables:
+```{python}
+Consumer.prices
+Consumer.Xprice
+Consumer.Yprice
+```
+
+  1. instance method to access class variable: `self.__class__.Xprice`
+  
+  2. staticmethod to access class variable:
+  
+```{python}
+class Consumer: 
+    prices=(2,3)
+    Xprice=prices[0]
+    Yprice=prices[1]
+    
+    ....
+    
+    # instance_method
+    def instance_method(self, ...):
+        self.__class__.Xprice
+        
+    @staticmethod # not use
+    def statice_method(...):
+        Consumer.Xprice
+        
+    @classmethod
+    def class_method(cls,...):
+        cls.Xprice
+
+```
+
+  
+```{python}
+# instance method
+consumer_A.U
+consumer_A.optimise
+
+# instance variables
+consumer_A.alpha
+consumer_A.I
+consumer_A.c_optimX
+consumer_A.c_optimY
+consumer_A.c_optim
+```
+
+```{python}
+class Consumer: 
+    prices=(2,3)
+    Xprice=prices[0]
+    Yprice=prices[1]
+    
+    ....
+    
+    def method(self, ...):
+        self.__class__.Xprice
+
+```
+
+
+
+```{python}
+class Consumer: 
+    prices=(2,3)
+    Xprice=prices[0]
+    Yprice=prices[1]
+    def __init__(self, params):
+        assert (
+          type(params) is tuple # Check params's type
+          and len(params) == 2 # Check params's length
+          and all([ type(paramsi) is int or type(paramsi) is float for paramsi in params])
+        ), "params must be a tuple of two numbers."
+        self.alpha,self.I= params
+        self.c_optimX=0
+        self.c_optimY=0
+        self.c_optim= [self.c_optimX,self.c_optimY]
+    def U(self,p):#Utility Function 
+        assert (
+          type(p) is tuple #Check x's type
+          and len(p) == 2 # Check x's length
+          and all([ type(xi) is int or type(xi) is float for xi in p])
+        ), "x must be a tuple of two numbers."
+        Xprice,Yprice=list(p)
+        prices=list(p)
+        return self.__class__.Xprice**self.alpha*self.__class__.Yprice**(1-self.alpha)
+    def optimise(self):
+        from scipy import optimize
+        import numpy as np
+        def U(xnum,ynum):
+           return -(xnum**self.alpha*ynum**(1-self.alpha)) # take negative for minimization purpose
+        def const_nonNeg(xnum,ynum):
+           return self.I-Consumer.prices[0]*xnum-Consumer.prices[1]*ynum
+        def convert2arrayInputFunction(f0):
+          def newFun(x_array):
+            return f0(*x_array)
+          return newFun
+        newU = convert2arrayInputFunction(U)
+        newConst_nonNeg = convert2arrayInputFunction(const_nonNeg)
+        ## Define optimization question
+        const_dict = ({ "type": "ineq", # change to "eq" for equality constraint
+        "fun": newConst_nonNeg
+        })
+        x0 = np.array([1,1])
+        optimize.minimize(
+        fun = newU, x0=x0,
+        constraints= const_dict
+        )
+        res=optimize.minimize(
+        fun = newU, x0=x0,
+        constraints= const_dict
+        )
+        # update instance variables
+        self.c_optimX=res.x[0]
+        self.c_optimY=res.x[1]
+        self.c_optim= [round(self.c_optimX),round(self.c_optimY)]
+
+```
+
+```{python}
+consumer_A.
+```
+
+
+```{python}
+params_A=(0.2, 500) # (alpha, I)
+consumer_A=Consumer(params_A)
+
+params_B = (0.8, 200)
+consumer_B = Consumer(params_B)
+
+consumer_A.prices # (2, 3)
+consumer_B.prices # both show market prices
+
+c0 = (2,3)
+consumer_A.U(c0) 
+consumer_B.U(c0) # show utilities of c0 for both consuemrs
+
+consumer_A.optimise()
+consumer_B.optimise() # show the optimisation result, and afterward
+
+consumer_A.c_optim
+consumer_B.c_optim # show the optimised c bundle
+
+Consumer.prices = (5, 8)
+consumer_A.optimise()
+consumer_B.optimise() # show the optimisation result, and afterward
+
+consumer_A.c_optim
+consumer_B.c_optim # show the optimised c bundle
+
+consumer_A.I = 300
+consumer_A.optimise()
+consumer_A.c_optim
+
+# EOF
+```
+```{python}
+def convert2arrayIF(f0):
+    def newFun(x_array):
+      return f0(*x_array)
+    return newFun
+
+
+class Consumer_opt:
+    prices = (2,3) #Class Variables
+    
+    def __init__(self, params, I): #Define class attribute
+        self.I = I
+        self.params = params
+    
+    def U(self, c):
+        x, y = c
+        alpha = self.params
+        U = x**alpha * y**(1-alpha)
+        self.c0 = c
+        return U
+    
+    def optimise(self):
+        
+        def U_Model(x,y): 
+          alpha = self.params
+          U = x**alpha * y**(1-alpha)
+          return -U
+        
+        def const_nonNeg(x,y):
+            p1, p2 = Consumer_opt.prices
+            I = self.I
+            return self.I-x*p1-y*p2
+        
+        
+        new_U_Model = convert2arrayIF(U_Model)
+        new_const_nonNeg = convert2arrayIF(const_nonNeg)
+        new_const = ({ "type": "ineq", "fun": new_const_nonNeg})
+        opt_result = optimize.minimize(fun=new_U_Model, x0=self.c0, constraints=new_const)
+        self.opt_result = opt_result
+        self.c_optim = [self.opt_result.x[0], self.opt_result.x[1]]
+        return self.opt_result
+
+#EOF
+```
+
+## Chapter 6
+
+
+```{r}
+xfun::download_file("https://www.dropbox.com/s/cyp43ve6wyqnof1/consumers.py?dl=1", mode='wb')
+```
+
+```{python}
+import requests
+
+response = requests.get("https://www.dropbox.com/s/cyp43ve6wyqnof1/consumers.py?dl=1")
+output_file_object = open("consumers.py", "w")
+output_file_object.writelines(response.text)
+output_file_object.close()
+
+from pathlib import Path
+currentPath = Path()
+if currentPath.cwd() not in sys.path: # current working directory 
+    sys.path.append(currentPath.cwd())
+
+import consumers as cs
+from numpy.random import default_rng
+rng_alpha = default_rng(2020)
+rng_beta = default_rng(3892)
+
+size = 500
+consumers500 = [
+    cs.Consumer(alpha, beta) for alpha, beta in zip(rng_alpha.uniform(300,500,size), rng_beta.uniform(5,30,size))
+]
+```
+
+
+## 5.6
+
+```{python}
+from numpy.random import default_rng
+rng_alpha = default_rng(2020)
+rng_beta = default_rng(2022)
+
+consumers500 = [ Consumer(alpha, beta) for alpha, beta in zip(rng_alpha.uniform(300,500, size=500), rng_beta.uniform(20, 100, size=500))]
+
+```
+
+```{python}
+def qd_generator(alpha, beta):
+    def qd(p):
+        return max(0, alpha-beta*p)
+    return qd
+
+class Consumer:
+    def __init__(self, alpha, beta):
+        self.alpha=alpha
+        self.beta=beta
+        self.qd = qd_generator(alpha, beta)
+
+
+```
+
+```{python}
+consumer300_20 = Consumer(300,20)
+consumer450_40 = Consumer(450,40)
+
+consumer300_20.qd(5)
+consumer450_40.qd(5)
+```
+```{python}
+from numpy.random import default_rng
+
+def qd_generator(alpha, beta):
+    def qd(p):
+        return max(0, alpha-beta*p)
+    return qd
+
+class Consumer:
+    def __init__(self, alpha, beta):
+        self.alpha=alpha
+        self.beta=beta
+        self.qd = qd_generator(alpha, beta)
+
+rng_alpha = default_rng(2020)
+rng_beta = default_rng(2022)
+
+consumers500 = [ Consumer(alpha, beta) for alpha, beta in zip(rng_alpha.uniform(300,500, size=500), rng_beta.uniform(20, 100, size=500))]
+```
+```{python}
+consumers500[99].qd(3)
+```
+```{python}
+def Qd(p):
+    total = 0
+    for x in range(len(consumers500)):
+       total+=consumers500[x].qd(p)  # mutable+, mutable.add2myself()
+       # total = total + consumers500[x].qd(p)
+    return total
+
+Qd(3)
+```
+
+```{python}
+Consumer.Qd(3)
+```
+
+```{python}
+# class variable
+Consumer.consumers500
+
+# instance variable
+consumer.alpha
+consumer.beta
+consumer.qd # instance method
+
+# class method
+Consumer.Qd
+```
+
+
+```{python}
+
+class Consumer:
+    consumers500 = []
+    
+    def __init__(self, alpha, beta):
+        self.alpha=alpha
+        self.beta=beta
+        self.qd = qd_generator(alpha, beta)
+        self.__class__.consumers500.append(self)
+    
+    @classmethod
+    def Qd(cls, p):
+        total = 0
+        for x in range(len(cls.consumers500)):
+           total+=cls.consumers500[x].qd(p)  # mutable+, mutable.add2myself()
+           # total = total + consumers500[x].qd(p)
+        return total
+
+
+```
+
+```{python}
+consumer1 = Consumer(500, 10)
+consumer2 = Consumer(299, 5)
+
+Consumer.consumers500[0].alpha
+Consumer.consumers500[1].alpha
+Consumer.Qd(3)
+```
+
