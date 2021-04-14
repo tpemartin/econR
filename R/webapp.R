@@ -5,8 +5,14 @@
 #'
 #' @examples None
 Web <- function(){
+  assertthat::assert_that(
+    exists("drake", envir=.GlobalEnv),
+    msg="There is no drake in global environment. Please initiate drake."
+  )
   web <- new.env()
   # web$convertHTML2RTags <- convertHTML2RTags
+
+  web$rmdfilename <- .GlobalEnv$drake$activeRmd$filenames
 
   web$htmlDependencies <- list()
   web$htmlDependencies <-
@@ -129,11 +135,11 @@ web_output_filepath <- function(web){
   function(){
     .root <- rprojroot::is_rstudio_project$make_fix_file()
     output_folder <-
-      file.path(dirname(.root()), web$foldername)
+      file.path(dirname(.root()), .GlobalEnv$web$foldername)
     if(!dir.exists(output_folder)) dir.create(output_folder)
     output_filepath <-
       file.path(
-        output_folder, web$html_filename
+        output_folder, .GlobalEnv$web$html_filename
       )
     return(output_filepath)
   }
@@ -376,4 +382,144 @@ fix_stringUnquoted <- function(txt2){
     "(?<=(\\)))[\\s]*[\']", ", \'"
   ) -> txt5
   return(txt5)
+}
+createTextRmd <- function(web)
+{
+  function(){
+    require(dplyr)
+    # .activeFile <- rstudioapi::getSourceEditorContext() %>% .$path
+    # stringr::str_replace(
+    #   .activeFile, "\\.[Rr][Mm][Dd]", "_text.Rmd"
+    # ) -> textRmdfilename
+    if(!file.exists(web$json$textRmdfilename)){
+      xfun::write_utf8(
+        "", con=web$json$textRmdfilename
+      )
+    }
+    print(glue::glue("textRmd is created at \n{web$json$textRmdfilename}"))
+    web$json$rmd_file.edit <- function(){
+      file.edit(web$json$textRmdfilename)
+    }
+    # web$textRmd$.autopsy <-
+    #   export_textRmdlinesAsTibble(web)
+  }
+
+}
+
+export_textRmdlinesAsTibble <- function(web){
+  # function(){
+    require(dplyr)
+    # .activeFile <- rstudioapi::getSourceEditorContext() %>% .$path
+    filelines <- readLines(web$json$textRmdfilename)
+    stringr::str_which(filelines, "^#") -> lineBreaks
+    lineBreakIds <- stringr::str_extract(filelines[lineBreaks], "(?<=\\{#)[^#]+(?=\\})")
+    whichLineBreakHasId <- which(!is.na(lineBreakIds))
+
+    whichLevelsNeedChange2Ids <- lineBreaks[whichLineBreakHasId]
+    cut(
+      seq_along(filelines),
+      breaks=c(0, lineBreaks, Inf), right=F
+    ) -> cut_filelines
+    levelNames <- levels(cut_filelines)
+    which(as.integer(stringr::str_extract(
+      levelNames,"(?<=\\[)[0-9]+")) %in% whichLevelsNeedChange2Ids
+    ) -> pickLevelNames
+    levelNames[pickLevelNames] <-
+      na.omit(lineBreakIds)
+    levels(cut_filelines) <- levelNames
+    # cut_filelines
+    tibble::tibble(
+      lines=filelines,
+      cut=cut_filelines
+    ) -> tbX
+    stringr::str_remove(tbX$lines,"\\s") %>% {.!=""} -> pick_nonEmptylines
+    tbX[pick_nonEmptylines,]-> tbXX
+
+    tbXX %>%
+      mutate(
+        line_noSpace = stringr::str_trim(lines, side="left"),
+        lines = if_else(stringr::str_detect(line_noSpace, "^(#|</?[a-z]+>)"), lines, paste0("<p>",lines, "</p>"))) -> tbXX
+    tbXX %>%
+      group_by(
+        cut
+      ) %>%
+      summarise(
+        txt=paste0(lines[-1], collapse = "\n")
+      ) %>%
+      ungroup() -> web$json$tibble
+  # }
+
+}
+
+create_textJson <- function(web){
+  function(){
+    require(dplyr)
+
+    # web$json$tibble <-
+      export_textRmdlinesAsTibble(web)
+
+    # cutLevels <- levels(web$textRmd$tibble$cut)
+
+    templist <-
+      setNames(
+        as.list(web$json$tibble$txt),
+        web$json$tibble$cut)
+    # idLevels <- stringr::str_subset(cutLevels, "^[^\\[].*[^\\)]$")
+    web$json$list <- templist
+    jsonlite::toJSON(
+      web$json$list, auto_unbox = T
+    ) -> web$json$object
+
+    # jsonfilename <-
+    #   stringr::str_replace(
+    #     web$textRmd$filename,"\\.[Rr][Mm][Dd]",".json")
+    # web$textRmd$jsonfilename <-
+    #   file.path(
+    #     dirname(web$output_filepath()),
+    #     basename(jsonfilename)))
+
+    .root <- rprojroot::is_rstudio_project$make_fix_file()
+
+    file.path(
+      dirname(.root()),
+      web$foldername,
+      basename(stringr::str_replace(web$jsonRmdfilename,
+                         "\\.Rmd",
+                         ".json"))) -> web$json$filename
+
+    xfun::write_utf8(
+      web$json$object, con=web$json$filename
+    )
+  }
+}
+
+#' Initiate external JSON embody
+#'
+#' @param web An environment initiated by Web with foldername and filename specified
+#'
+#' @return
+#' @export
+#'
+#' @examples None
+initiateJson <- function(web){
+  # function(){
+    stringr::str_replace(
+      web$rmdfilename, "\\.[Rr][Mm][Dd]", "_text.Rmd"
+    ) -> web$jsonRmdfilename
+
+    web$json <- list(
+      textRmdfilename = web$jsonRmdfilename)
+    jsonfilename_wrongPath <-
+      stringr::str_replace(
+        web$json$textRmdfilname, "\\.[Rr][Mm][Dd]",".json")
+    web$json$filename =
+      file.path(
+        dirname(web$output_filepath()),
+        basename(jsonfilename_wrongPath))
+
+    web$json$create_rmd <- createTextRmd(web)
+
+    web$json$translate_rmd2json <- create_textJson(web)
+  # }
+  return(web)
 }
