@@ -30,10 +30,15 @@ Web <- function(){
 
   web$translate_HTML_fromClipboard <- translate_HTML_fromClipboard(web)
 
-  web$browse <- function(){
+  web$browse <- function(port=8880){
+    if(exists("server", web)){
+      web$server$stop_server()
+    }
+
     httwX <- servr::httw(
       dir=dirname(.GlobalEnv$web$output_filepath()),
-      baseurl=.GlobalEnv$web$html_filename)
+      baseurl=.GlobalEnv$web$html_filename,
+      port=port)
     .GlobalEnv$web$server <- httwX
   }
 
