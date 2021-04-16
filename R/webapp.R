@@ -35,10 +35,19 @@ Web <- function(){
       web$server$stop_server()
     }
 
-    httwX <- servr::httw(
-      dir=dirname(.GlobalEnv$web$output_filepath()),
-      baseurl=.GlobalEnv$web$html_filename,
-      port=port)
+    httwX <- tryCatch({
+      servr::httw(
+        dir=dirname(.GlobalEnv$web$output_filepath()),
+        baseurl=.GlobalEnv$web$html_filename,
+        port=port)
+    },
+    error=function(e){
+      servr::daemon_stop()
+      servr::httw(
+        dir=dirname(.GlobalEnv$web$output_filepath()),
+        baseurl=.GlobalEnv$web$html_filename,
+        port=port)
+    })
     .GlobalEnv$web$server <- httwX
   }
 
