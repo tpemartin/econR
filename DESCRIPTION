@@ -1,7 +1,7 @@
 Package: econR
 Type: Package
 Title: Complementary package for courses in NTPU Econ department
-Version: 0.2.1
+Version: 0.2.3
 Author: Martin Lin
 Maintainer: Martin Lin <mtlin@gm.ntpu.edu.tw>
 Description: More about what it does (maybe more than one line)
@@ -14,6 +14,7 @@ Imports:
     clipr,
     dplyr,
     htmltools,
+    htmlwidgets,
     rprojroot,
     servr,
     stringr
