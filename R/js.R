@@ -1,5 +1,6 @@
 web_translateJsChunk2RChunk <- function(web){
   function(){
+    .GlobalEnv$drake$update()
     require(dplyr)
     list_newCommand <- get_listJsTargetCommand()
     jsAttachmentComplete <- translate_jsChunk2RChunk(list_newCommand)
@@ -23,7 +24,7 @@ web_translateJsChunk2RChunk <- function(web){
         newRmdlines2write, con=web$rmdfilename
       )
     } else if (length(jsBreaks) == 2) {
-      summary_rmdlines <- update_jsSection(rmdlines, jsBreaks)
+      summary_rmdlines <- update_jsSection(rmdlines, jsBreaks, jsAttachmentComplete)
       xfun::write_utf8(
         summary_rmdlines$line, con=web$rmdfilename
       )
@@ -107,7 +108,7 @@ translate_jsChunk2RChunk <- function(list_newCommand){
 
   return(jsAttachmentComplete)
 }
-update_jsSection <- function(rmdlines, jsBreaks){
+update_jsSection <- function(rmdlines, jsBreaks, jsAttachmentComplete){
   cut(seq_along(rmdlines),
       breaks = c(0, jsBreaks, Inf))
   jsLevelName <- paste0("(",paste0(jsBreaks, collapse = ","),"]")
