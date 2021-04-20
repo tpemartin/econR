@@ -1,6 +1,7 @@
 web_translateJsChunk2RChunk <- function(web){
-  function(){
-    .GlobalEnv$drake$update()
+  function(update=T){
+    activeFile <- rstudioapi::getSourceEditorContext()
+    rstudioapi::documentSave(id=activeFile$id)
     require(dplyr)
     list_newCommand <- get_listJsTargetCommand()
     jsAttachmentComplete <- translate_jsChunk2RChunk(list_newCommand)
@@ -31,7 +32,11 @@ web_translateJsChunk2RChunk <- function(web){
     } else {
       stop("length(jsBreaks) is neither 0 nor 2.")
     }
+    if(update){
+      .GlobalEnv$drake$update()
+    }
   }
+
 }
 
 
