@@ -5,7 +5,7 @@
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples None
 output_path <- function(foldername="docs"){
   .root <- rprojroot::is_rstudio_project$make_fix_file()
   outputPath <- file.path(dirname(.root()), foldername)
@@ -33,4 +33,22 @@ addBackTick2ChineseCharacter <- function()
   xfun::write_utf8(
     rlines, con=filename
   )
+}
+#' Download file from url with output path set to the root
+#'
+#' @param url
+#'
+#' @return
+#' @export
+#'
+#' @examples None
+download_file <- function(url){
+  .root <- rprojroot::is_rstudio_project$make_fix_file()
+  url <- "https://www.dropbox.com/s/2desfhsqbqmq71j/plt_taiwanElection_partyColor.Rdata?dl=1"
+  filename <- stringr::str_remove(basename(url),"\\?.+")
+  outputfile= file.path(
+    .root(), filename
+  )
+  xfun::download_file(url, output=outputfile, mode="wb")
+  return(outputfile)
 }

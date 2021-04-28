@@ -56,8 +56,8 @@ Web <- function(){
 
   web$update_css_js <- update_css_js(web)
 
-  web$translate_js_chunk <- web_translateJsChunk2RChunk(web)
-
+  # web$translate_js_chunk <- web_translateJsChunk2RChunk(web)
+  web$update <- web_update(web)
   return(web)
 }
 

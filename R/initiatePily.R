@@ -5,7 +5,7 @@
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples None
 Pily <- function(plotlyObject){
   assertthat::assert_that(
     is(plotlyObject, "plotly"),

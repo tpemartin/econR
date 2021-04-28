@@ -1,4 +1,4 @@
-web_translateJsChunk2RChunk <- function(web){
+web_update <- web_translateJsChunk2RChunk <- function(web){
   function(update=T){
     activeFile <- rstudioapi::getSourceEditorContext()
     rstudioapi::documentSave(id=activeFile$id)
@@ -33,6 +33,7 @@ web_translateJsChunk2RChunk <- function(web){
       stop("length(jsBreaks) is neither 0 nor 2.")
     }
     if(update){
+      .GlobalEnv$web$update_css_js()
       .GlobalEnv$drake$update()
     }
   }
@@ -74,6 +75,12 @@ get_listJsTargetCommand <- function(){
     ~{
       stringr::str_replace_all(
         .GlobalEnv$drake$activeRmd$autopsy$content[whichIsJsWeb[[.x]]][[1]],
+        stringr::fixed("\""),
+        "\\\""
+      ) -> newContent
+      codeRange <- stringr::str_which(newContent, "^```")
+      stringr::str_replace_all(
+        newContent[codeRange[[1]]:codeRange[[2]]],
         "^```.*",
         "\"") -> newContent
       newCommand <- paste0(
@@ -81,6 +88,7 @@ get_listJsTargetCommand <- function(){
         paste0(newContent, collapse = "\n"), collapse = "\n"
       )
       newCommand
+
     }
   ) -> list_newCommand
   setNames(list_newCommand, jsTargetNames) -> list_newCommand
@@ -95,7 +103,7 @@ translate_jsChunk2RChunk <- function(list_newCommand){
       paste0(
         chunkStart,
         list_newCommand[[.x]],
-        "```\n",
+        "\n```",
         collapse="\n"
       ) -> completeChunk
       completeChunk
