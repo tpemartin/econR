@@ -52,3 +52,18 @@ download_file <- function(url){
   xfun::download_file(url, output=outputfile, mode="wb")
   return(outputfile)
 }
+
+#' Parse dropbox link
+#'
+#' @param imglink a character of dropbox url starting with www.dropbox.com
+#'
+#' @return a character of dropbox link that works for <img src=...>
+#' @export
+#'
+#' @examples None
+parse_dropboxlink <- function(imglink){
+  validlink <- stringr::str_replace(imglink,
+                                    "www.dropbox.com",
+                                    "dl.dropboxusercontent.com")
+  return(validlink)
+}

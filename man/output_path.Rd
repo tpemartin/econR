@@ -15,3 +15,6 @@ output_path(foldername = "docs")
 \description{
 Generate a output path referring to the sibling folder of the project folder
 }
+\examples{
+None
+}
