@@ -9,26 +9,37 @@ web_update <- web_translateJsChunk2RChunk <- function(web){
     xfun::read_utf8(web$rmdfilename) -> rmdlines
 
     jsBreaks <- c(
-      stringr::str_which(rmdlines, "^## JS")-1,
+      stringr::str_which(rmdlines, "^## JS"),
       stringr::str_which(rmdlines, "^<!--JS end-->")
     )
 
     if(length(jsBreaks) == 0){
+      # browser()
       c(
         rmdlines,
-        "\n",
         jsAttachmentComplete,
-        ""
+        "\n"
       ) -> newRmdlines
       paste0(newRmdlines, collapse = "\n") -> newRmdlines2write
       xfun::write_utf8(
         newRmdlines2write, con=web$rmdfilename
       )
     } else if (length(jsBreaks) == 2) {
-      summary_rmdlines <- update_jsSection(rmdlines, jsBreaks, jsAttachmentComplete)
+      # browser()
+      rmdlines <- rmdlines[-c(jsBreaks[[1]]:jsBreaks[[2]])]
+      c(
+        rmdlines,
+        jsAttachmentComplete
+      ) -> newRmdlines
+      paste0(newRmdlines, collapse = "\n") -> newRmdlines2write
       xfun::write_utf8(
-        summary_rmdlines$line, con=web$rmdfilename
+        newRmdlines2write, con=web$rmdfilename
       )
+      #
+      # summary_rmdlines <- update_jsSection(rmdlines, jsBreaks, jsAttachmentComplete)
+      # xfun::write_utf8(
+      #   summary_rmdlines$line, con=web$rmdfilename
+      # )
     } else {
       stop("length(jsBreaks) is neither 0 nor 2.")
     }

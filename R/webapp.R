@@ -58,6 +58,8 @@ Web <- function(){
 
   # web$translate_js_chunk <- web_translateJsChunk2RChunk(web)
   web$update <- web_update(web)
+
+  web$browsable <- web_browsable
   return(web)
 }
 
