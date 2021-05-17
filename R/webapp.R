@@ -370,9 +370,19 @@ fix_inputTagArgsHaveNoValue <- function(string){
 get_string2beQuoted <- function(txt2){
   stringr::str_extract_all(txt2,
                            '(?<=([\\),\"]))[^\\),\"]*(?=\\))') -> txt3
+  # stringr::str_view_all(txt2,
+  #                          '(?<=([\\),\"]))[^\\),\"]*(?=\\))')
+  #
+
   txt3 <- unlist(txt3)
-  whichIsNotEmpty <- which(txt3 != "")
-  txt4 <- txt3[whichIsNotEmpty]
+  stringr::str_remove_all(txt3, "\\s") -> txt3noSpace
+
+  whichIsNotEmpty <- which(txt3noSpace != "")
+
+  whichIsNotBackTicks <- stringr::str_which(txt3noSpace, "^`", negate=T)
+
+  whichIs2BeProcessed <- dplyr::intersect(whichIsNotEmpty, whichIsNotBackTicks)
+  txt4 <- txt3[whichIs2BeProcessed]
   stringr::str_subset(
     txt4, "(\n[\\s]*)", negate=T
   ) -> txt5
