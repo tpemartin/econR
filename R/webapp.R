@@ -60,6 +60,14 @@ Web <- function(){
   web$update <- web_update(web)
 
   web$browsable <- web_browsable
+
+  web$assets <- list()
+  web$assets$generate_dependency <- generate_assets_dependency(web)
+
+
+  web$img <- list()
+  web$img$set_image_path <- set_image_path(web)
+
   return(web)
 }
 
@@ -550,4 +558,23 @@ initiateJson <- function(web){
     web$json$translate_rmd2json <- create_textJson(web)
   # }
   return(web)
+}
+generate_assets_dependency <- function(web){
+  function(name, version, relativeSourcePath){
+    .root <- rprojroot::is_rstudio_project$make_fix_file()
+    .htmlDependency <-
+      htmltools::htmlDependency(
+        name=name,
+        version=version,
+        src=c(filepath=file.path(.root(),relativeSourcePath)),
+        all_files=T
+      )
+    .src_path <- file.path("lib", paste0(name, "-", version))
+
+
+    web$assets$dependency = .htmlDependency
+    web$assets$src_path = .src_path
+
+  }
+
 }

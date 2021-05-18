@@ -15,3 +15,6 @@ Pily(plotlyObject)
 \description{
 Input a plotly object to create a pily instance for convenient plotly exploration
 }
+\examples{
+None
+}

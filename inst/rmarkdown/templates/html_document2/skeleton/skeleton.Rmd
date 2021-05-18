@@ -1,0 +1,64 @@
+---
+title: "大學生課程停修分析及其與退學及延畢之關係：<br>以北部某私立大學為例"
+author: "陶宏麟、王人豪、王千文[^bignote]"
+output:
+  bookdown::html_document2:
+    css: "assets/style.css"
+    number_sections: true
+bibliography: ["bib/myreference.bib", "bib/example.bib"]
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align="center", message=F)
+```
+
+# 摘要 {-#abstract}
+
+這裡可以看到如何給予標題id(abstract)同時取消其編號。
+
+# 文獻處理
+
+  * [rmarkdown-cookbook/bibliography](https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html)
+
+## 軟體
+
+  * [JabRef](https://www.jabref.org/#download)
+  
+    * [JabRef說明](https://www.itread01.com/content/1538842951.html)
+    
+示範輸入文獻。
+
+## Google Scholar
+
+  * [Google Scholar](https://scholar.google.com/)
+
+步驟:
+
+  * 按星星選所有要的文章. 
+  
+  * my library
+  
+  * click all > download , then copy
+  
+  * paste to JabRef
+
+
+## 引用
+
+正文部份：
+
+根據 @李浩仲等2020
+
+
+***
+
+章節部份:
+
+
+# 参考文献 {-#references} 
+
+```{r, child="child/footnote.Rmd"}
+
+```
+
