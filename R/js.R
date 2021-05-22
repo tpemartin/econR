@@ -2,6 +2,7 @@ web_update <- web_translateJsChunk2RChunk <- function(web){
   function(update=T){
     activeFile <- rstudioapi::getSourceEditorContext()
     rstudioapi::documentSave(id=activeFile$id)
+
     require(dplyr)
     list_newCommand <- get_listJsTargetCommand()
     jsAttachmentComplete <- translate_jsChunk2RChunk(list_newCommand)
@@ -46,11 +47,75 @@ web_update <- web_translateJsChunk2RChunk <- function(web){
     if(update){
       .GlobalEnv$web$update_css_js()
       .GlobalEnv$drake$update()
+    } else {
+      # if update_hard
+      .GlobalEnv$drake <- rmd2drake::Drake()
+      .GlobalEnv$drake$source_plan()
+      .GlobalEnv$drake$makePlan()
     }
   }
 
 }
 
+web_update_hard <- function(web){
+  function(update=T){
+    activeFile <- rstudioapi::getSourceEditorContext()
+    rstudioapi::documentSave(id=activeFile$id)
+
+    require(dplyr)
+    list_newCommand <- get_listJsTargetCommand()
+    jsAttachmentComplete <- translate_jsChunk2RChunk(list_newCommand)
+
+    xfun::read_utf8(web$rmdfilename) -> rmdlines
+
+    jsBreaks <- c(
+      stringr::str_which(rmdlines, "^## JS"),
+      stringr::str_which(rmdlines, "^<!--JS end-->")
+    )
+
+    if(length(jsBreaks) == 0){
+      # browser()
+      c(
+        rmdlines,
+        jsAttachmentComplete,
+        "\n"
+      ) -> newRmdlines
+      paste0(newRmdlines, collapse = "\n") -> newRmdlines2write
+      xfun::write_utf8(
+        newRmdlines2write, con=web$rmdfilename
+      )
+    } else if (length(jsBreaks) == 2) {
+      # browser()
+      rmdlines <- rmdlines[-c(jsBreaks[[1]]:jsBreaks[[2]])]
+      c(
+        rmdlines,
+        jsAttachmentComplete
+      ) -> newRmdlines
+      paste0(newRmdlines, collapse = "\n") -> newRmdlines2write
+      xfun::write_utf8(
+        newRmdlines2write, con=web$rmdfilename
+      )
+      #
+      # summary_rmdlines <- update_jsSection(rmdlines, jsBreaks, jsAttachmentComplete)
+      # xfun::write_utf8(
+      #   summary_rmdlines$line, con=web$rmdfilename
+      # )
+    } else {
+      stop("length(jsBreaks) is neither 0 nor 2.")
+    }
+    if(update){
+      # if update_hard
+
+      .GlobalEnv$drake <- rmd2drake:::Drake()
+
+      drakeCachePath <- .GlobalEnv$drake$activeRmd$frontmatter$drake_cache
+      if(dir.exists(drakeCachePath)) unlink(drakeCachePath, recursive = T)
+      .GlobalEnv$drake$source_plan()
+      .GlobalEnv$drake$makePlan()
+    }
+  }
+
+}
 
 ## helpers
 
@@ -68,7 +133,7 @@ get_listJsTargetCommand <- function(){
   pickJsWeb <- pickJs & pickWeb
 
   whichIsJsWeb <- which(pickJsWeb)
-
+  # browser()
   jsTargetNames <-
     {
       purrr::map(whichIsJsWeb,

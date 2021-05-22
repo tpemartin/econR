@@ -40,6 +40,7 @@ Web <- function(){
         dir=dirname(.GlobalEnv$web$output_filepath()),
         baseurl=.GlobalEnv$web$html_filename,
         port=port)
+
     },
     error=function(e){
       servr::daemon_stop()
@@ -47,8 +48,14 @@ Web <- function(){
         dir=dirname(.GlobalEnv$web$output_filepath()),
         baseurl=.GlobalEnv$web$html_filename,
         port=port)
+
     })
     .GlobalEnv$web$server <- httwX
+    rstudioapi::viewer(
+      stringr::str_replace(
+        .GlobalEnv$web$server$url, "(?<=)[0-9\\.]+","localhost"
+      )
+    )
   }
 
   web$config_cssJsPath <- config_cssJsPath_generator(web)
@@ -58,6 +65,7 @@ Web <- function(){
 
   # web$translate_js_chunk <- web_translateJsChunk2RChunk(web)
   web$update <- web_update(web)
+  web$update_hard <- web_update_hard(web)
 
   web$browsable <- web_browsable
 
