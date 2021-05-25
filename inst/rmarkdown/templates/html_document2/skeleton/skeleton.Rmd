@@ -1,67 +1,88 @@
 ---
 title: "大學生課程停修分析及其與退學及延畢之關係：<br>以北部某私立大學為例"
-author: "陶宏麟、王人豪、王千文[^bignote]"
+author: "陶宏麟、王人豪、王千文[^author]"
 output:
   bookdown::html_document2:
     css: "assets/style.css"
     number_sections: true
-bibliography: ["bib/myreference.bib", "bib/example.bib"]
+    fig_width: 1
+    fig_height: 1
+bibliography: ["bib/myreference.bib", "bib/example.bib", "bib/google.bib"]
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, fig.align="center", message=F, warning=F)
-library(econR); tb <- Table()
+library(econR); tb <- Table(); fig <- Figure()
 library(kableExtra); options(knitr.kable.NA="")
 library(dplyr)
 ```
 
-# 摘要 {-#abstract}
+# 摘要 {#abstract .unnumbered}
 
 這裡可以看到如何給予標題id(abstract)同時取消其編號。
 
-# 文獻處理
+# 文獻引用(citation)
 
-  * [rmarkdown-cookbook/bibliography](https://bookdown.org/yihui/rmarkdown-cookbook/bibliography.html)
+From page 5
 
-## 軟體
-
-  * [JabRef](https://www.jabref.org/#download)
-  
-    * [JabRef說明](https://www.itread01.com/content/1538842951.html)
-    
-示範輸入文獻。
-
-## Google Scholar
-
-  * [Google Scholar](https://scholar.google.com/)
-
-步驟:
-
-  * 按星星選所有要的文章. 
-  
-  * my library
-  
-  * click all > download , then copy
-  
-  * paste to JabRef
+停修制度是一項影響廣泛且長久的高教政策，臺灣至今未對此 議題進行過研究，甚至碩博士論文也不曾分析過。國外雖有研究， 但也相當少見 @adams1990course、 @miller1997context、 @wheland2012they、 @michalski2014their、 @boldt2017factors 是少數的幾篇，其 中 @wheland2012they 與 @michalski2014their 在文中也提及能參考的 文獻相當有限。這幾篇文獻的研究對象不同，有社區大學或一般大 學，有針對少數基礎科目或所有科目，結論也不一，例如 @adams1990course 發現成績越高越不會停修，但 @miller1997context 與 @boldt2017factors 的結論卻相反，他們認為好學生之所以停修學分數高是為 了維持好成績以保持獎補助學金的取得資格或未來能在職場上行銷 自己。可見，不同類型的大學與不同的動機，可能會產生不同的停 修行為。橘逾淮為枳，國外文獻結論雖可參考，但不必然適用於臺 灣，臺灣需有自己高教停修的政策分析。鑒於臺灣各大學多已建立 屬於自己的校務資料庫，為大學停修開始分析之契機。基此，興起 本文探究停修的成因，及其與延畢與退學間的關係。
 
 
-## 引用
 
-正文部份：
+# 表、圖、方程式
 
-根據 @李浩仲等2020
-
-
-***
-
-章節部份:
+## 表
 
 
-# 参考文献 {-#references} 
+```{r mytable, eval=T, echo=F}
+load("table/mytable.Rdata")
+kbl(mytable, caption = "一般公私立大學停修名稱與限制內容") %>% kable_classic(full_width = F) %>% footnote(general_title = "附註: ", general = "資料來源:本研究整理。\n 說明:公私立大學僅標示各校主要校名，省略全稱，如暨南代表國立暨南國際大學。")
+```
+
+
+圖 \@ref(tab:mytable)
+
+
+
+## 圖
+
+```{r myFig, eval=T, echo=F, fig.cap='title', out.width='20%'}
+knitr::include_graphics("https://clipartion.com/wp-content/uploads/2015/10/girl-child-reading-clipart-free-clip-art-images.jpg")
+```
+
+圖 \@ref(fig:myFig)
+
+```{r rgenerated-fig, eval=T, echo=F, fig.cap="R生成的圖形", fig.width=5, fig.height=2}
+library(ggplot2)
+# Small fig.width
+ggplot(cars, aes(speed, dist)) + geom_point()
+```
+
+圖\@ref(fig:rgenerated-fig)
+
+## 方程式
+
+一條方程式
+$$
+Y_t=X\beta+\alpha F_{t-1} + \gamma G_{t-1} + \lambda F_{t-1}^2 +\delta G_{t-1}^2 + \epsilon,
+(\#eq:model)
+$$
+
+\@ref(eq:model)式
+
+
+多條方程式
+
+\begin{align}
+  x^2+y^2&=2r^2 (\#eq:1) \\
+  d^2+h^2&=4r^2 (\#eq:2)
+\end{align}
+
+
+\@ref(eq:1)及\@ref(eq:2)式
+
+# 參考文獻 {#references .unnumbered}
 
 ```{r, child="child/footnote.Rmd"}
 
 ```
-

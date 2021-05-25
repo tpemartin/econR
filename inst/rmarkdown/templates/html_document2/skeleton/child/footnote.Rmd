@@ -1,8 +1,2 @@
-[^bignote]: Here's one with multiple paragraphs and code.
-
-    Indent paragraphs to include them in the footnote.
-
-    `{ my code }`
-
-    Add as many paragraphs as you like.
+[^author]: url link: <https://www.dropbox.com/s/bbkd9sqp35yt75c/%E9%99%B6%E5%AE%8F%E9%BA%9F.pdf?dl=0>
 

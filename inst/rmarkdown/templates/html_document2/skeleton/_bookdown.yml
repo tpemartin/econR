@@ -1,7 +1,7 @@
 language:
   label:
-    fig: 'Figure '
-    tab: '表 '
+    fig: '圖'
+    tab: '表'
     eq: 'Equation '
     thm: 'Theorem '
     lem: 'Lemma '
