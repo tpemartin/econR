@@ -3,3 +3,8 @@ Description: New Addin Description
 Binding: addBackTick2ChineseCharacter
 Interactive: false
 
+Name: convert to script
+Description: New Addin Description
+Binding: convert2script
+Interactive: false
+
