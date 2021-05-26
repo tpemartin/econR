@@ -1,0 +1,46 @@
+---
+title: "pRython"
+output: output_format
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+use_condaenv("r-reticulate")
+pathList = purrr::map(c(r="R",py="Python"), ~{file.path(getwd(),.x)})
+reticulate::source_python(file.path(pathList$py, "consumers.py"))
+```
+
+```{r}
+Model = list()
+Model$Consumer = py$Consumer
+```
+
+```{r}
+numberOfConsumers = 500
+set.seed(2058)
+params = 
+  list(
+    alpha = runif(n=numberOfConsumers, min=70, max=300),
+    beta = runif(n=numberOfConsumers, min=30, max=60)
+  )
+```
+
+```{r}
+params$alpha[[1]]
+params$beta[[1]]
+```
+
+```{r}
+Model$Consumer(params$alpha[[1]], params$beta[[1]])
+Model$Consumer$consumers500[[1]]$alpha
+Model$Consumer$consumers500[[1]]$beta
+Model$Consumer$consumers500[[1]]$qd(1)
+```
+
+
+```{r}
+purrr::walk(seq_along(params), ~Model$Consumer(params$alpha[[.x]], params$beta[[.x]]))
+
+```
+

@@ -67,3 +67,39 @@ parse_dropboxlink <- function(imglink){
                                     "dl.dropboxusercontent.com")
   return(validlink)
 }
+#' Convert active Rmd to R script file in a purl folder under project root
+#'
+#' @return
+#' @export
+#'
+#' @examples None
+convert2script <- function(){
+  rstudioapi::getSourceEditorContext() -> sourceX
+
+  .root <- rprojroot::is_rstudio_project$make_fix_file()
+  purlfolder <-
+    file.path(
+      .root(),"purl"
+    )
+
+  # create purl folder
+  if(!dir.exists(purlfolder)) dir.create(purlfolder)
+
+  scriptfilepath <-
+    file.path(
+      purlfolder,
+      basename(stringr::str_replace(
+        sourceX$path,
+        "\\.[Rr][Mm][Dd]$",
+        ".R"
+      ))
+    )
+
+  knitr::purl(
+    input = sourceX$path,
+    output = scriptfilepath
+  )
+  file.edit(
+    scriptfilepath
+  )
+}
