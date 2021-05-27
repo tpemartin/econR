@@ -76,6 +76,8 @@ Web <- function(){
   web$img <- list()
   web$img$set_image_path <- set_image_path(web)
 
+  web$tools$htmlDependencyPath <- htmlDependency_path
+
   return(web)
 }
 
@@ -585,4 +587,57 @@ generate_assets_dependency <- function(web){
 
   }
 
+}
+#' Get script path after htmltools::htmlDependency is resolved
+#'
+#' @param htmldep An htmlDependency object
+#'
+#' @return
+#' @export
+#'
+#' @examples none
+htmlDependency_path <- function(htmldep){
+  # htmldep <- googleSheets$dependency
+  output <- list()
+
+  if(!is.null(htmldep$script)){
+    subdir <- stringr::str_remove(htmldep$script,"/$")
+    purrr::map(
+      subdir,
+      ~file.path(
+        "lib",
+        paste0(htmldep[c("name","version")], collapse="-"),
+        .x
+      )
+    ) -> src_path
+
+    setNames(src_path, subdir) -> output$script
+  }
+  if(!is.null(htmldep$attachment)){
+    subdir <- stringr::str_remove(htmldep$attachment,"/$")
+    purrr::map(
+      subdir,
+      ~file.path(
+        "lib",
+        paste0(htmldep[c("name","version")], collapse="-"),
+        .x
+      )
+    ) -> att_path
+
+    setNames(att_path, subdir) -> output$attachment
+  }
+  if(!is.null(htmldep$stylesheet)){
+    subdir <- stringr::str_remove(htmldep$stylesheet,"/$")
+    purrr::map(
+      subdir,
+      ~file.path(
+        "lib",
+        paste0(htmldep[c("name","version")], collapse="-"),
+        .x
+      )
+    ) -> css_path
+
+    setNames(css_path, subdir) -> output$stylesheet
+  }
+  return(output)
 }
