@@ -103,31 +103,44 @@ convert2script <- function(){
     scriptfilepath
   )
 }
-#' Download Google drive shared link to a destination folder
+
+#' Take user to the repo in github that corresponds to the current rstudio project
 #'
-#' @param googleSharedLink A shared link
-#' @param destfolder A destination folder path
+#' @param user
 #'
 #' @return
 #' @export
 #'
 #' @examples none
-googleLink_download <- function(googleSharedLink,
-  destfolder=destfolder){
-  googledrive::as_dribble(googleSharedLink) -> drb
-  googledrive::drive_ls(drb) -> allFiles
-  if(!dir.exists(destfolder)) dir.create(destfolder)
+take_me2github <- function(){
+  Sys.getenv("GITHUB_USER") -> user
+  if(user==""){
+    warning("Please add\nGITHUB_USER='your github username'\nto the pop up file. Then save it and restart your RStudio.")
+    usethis::edit_r_environ()
+    stop()
+  }
+  require(rprojroot)
+  rprojroot::is_rstudio_project-> pj
+  pj$make_fix_file() -> root
 
-  purrr::walk(
-    1:nrow(allFiles),
-    ~{
-      fileX = allFiles[.x, ]
-      googledrive::drive_download(
-        file = allFiles[.x, ],
-        path = file.path(destfolder, fileX$name),
-        overwrite = T
-      )
-    }
+  require(dplyr)
+  require(stringr)
+  repo = {
+    root() %>%
+      str_extract("[^/]*$")
+  }
+  browseURL(
+    glue::glue(
+      "https://github.com/{user}/{repo}"
+    )
   )
 
+}
+
+
+initiate_Renv <- function(){
+
+  file.edit(
+    file.path(r_home, ".Renviron")
+  )
 }

@@ -8,3 +8,13 @@ Description: New Addin Description
 Binding: convert2script
 Interactive: false
 
+Name: visit repo
+Description: New Addin Description
+Binding: take_me2github
+Interactive: false
+
+Name: Extract py from Rmd
+Description: New Addin Description
+Binding: extractPy
+Interactive: false
+
