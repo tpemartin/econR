@@ -96,3 +96,20 @@ web_browsable <-
     invisible(html_complete)
   }
 
+#' Browsable for Materialise CSS framework
+#'
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples None
+browsable_materialise <- function(...){
+  dep <- html_dependency()
+  htmltools::tagList(
+    dep$materialise(),
+    dep$jquery(),
+    ...
+  ) -> html2browse
+  browsable(html2browse)
+}

@@ -5,10 +5,11 @@
 #'
 #' @examples None
 Web <- function(){
-  assertthat::assert_that(
-    exists("drake", envir=.GlobalEnv),
-    msg="There is no drake in global environment. Please initiate drake."
-  )
+  # assertthat::assert_that(
+  #   exists("drake", envir=.GlobalEnv),
+  #   msg="There is no drake in global environment. Please initiate drake."
+  # )
+  if(!exists("drake", envir=.GlobalEnv)) warning("There is no drake in global environment. Please initiate drake.")
   web <- new.env()
   # web$convertHTML2RTags <- convertHTML2RTags
 

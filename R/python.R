@@ -15,7 +15,9 @@ extractPy <- function(){
     xfun::read_utf8(rmd$activeRmd$filenames)
 
   stringr::str_which(rmd$activeRmd$lines, "^```") -> whichStartWith3ticks
-  stringr::str_which(rmd$activeRmd$lines[whichStartWith3ticks], "^```\\{python") -> index_pythonStart
+  stringr::str_detect(rmd$activeRmd$lines[whichStartWith3ticks], "^```\\{python") -> pick_pythonStart
+  stringr::str_detect(rmd$activeRmd$lines[whichStartWith3ticks], "purl\\s*=\\s*F", negate=T) -> pick_noPurlF
+  index_pythonStart <- which(pick_pythonStart & pick_noPurlF)
   index_pythonEnd <- index_pythonStart+1
   data.frame(
     start=whichStartWith3ticks[index_pythonStart],
