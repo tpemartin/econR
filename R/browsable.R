@@ -111,5 +111,5 @@ browsable_materialise <- function(...){
     dep$jquery(),
     ...
   ) -> html2browse
-  browsable(html2browse)
+  htmltools::browsable(html2browse)
 }
