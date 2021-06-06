@@ -79,6 +79,20 @@ Web <- function(){
 
   web$tools$htmlDependencyPath <- htmlDependency_path
 
+  # React
+  web$react <-
+    list(
+      create_script = function(){
+        web$react$script <-
+          create_reactiveScript()
+        web$react$clipboard <- function(){
+          clipr::write_clip(
+            web$react$script
+          )
+        }
+      }
+    )
+
   return(web)
 }
 
