@@ -1,9 +1,38 @@
-# drakePlan <- drake$.planEnvironment$plan_prototype
-# .x = 3
-# targetX <- drakePlan$target[[3]]
-# drakePlanX <- drakePlan[3,]
-# convert2reactExpression(drakePlanX)
-# generate_reactExpressionsFromDrakePlan(drakePlan)
+extract_makeconditionInputs <- function(){
+
+    .GlobalEnv$drake$process2get$codes[["makecondition"]] -> context_makecondition
+
+    stringr::str_extract_all(
+      context_makecondition,
+      "\\binput[^\\s<=]*\\b"
+    ) -> list_inputs
+    inputTargets <- unlist(list_inputs)
+
+  return(inputTargets)
+}
+
+
+#' Create Reactive script to clipboard
+#'
+#' @return
+#' @export
+#'
+#' @examples None
+create_reactiveClip <- function(){
+  assertthat::assert_that(
+    exists("drake"),
+    msg="There is no drake."
+  )
+  assertthat::assert_that(
+    !is.null(drake$.planEnvironment),
+    msg="Please run drake$source_plan() first."
+  )
+
+  clipr::write_clip(
+    create_reactiveScript()
+  )
+
+}
 
 #' Create Reactive script from drake
 #'
@@ -27,11 +56,25 @@ create_reactiveScript <- function(){
       paste0(deparse(.x), collapse="\n")
     }
   ) -> reactScripts
+
+  makecondition <- .GlobalEnv$drake$process2get$codes$makecondition
+
+  reactScripts <-
+    c(
+      "# Input -----------\n",
+      makecondition, "\n",
+      "# Conductors and Output --------\n",
+      reactScripts
+    )
   return(reactScripts)
 }
 
 generate_reactExpressionsFromDrakePlan <- function(drakePlan){
-  targets <- drakePlan$target
+  inputTargets <- extract_makeconditionInputs()
+  targets <- c(
+    inputTargets,
+    drakePlan$target)
+
   list_exprs <- vector("list", nrow(drakePlan))
   for(.i in 1:nrow(drakePlan)){
     list_exprs[[.i]] <- convert2reactExpression(targets, drakePlan[.i,])

@@ -18,3 +18,8 @@ Description: New Addin Description
 Binding: extractPy
 Interactive: false
 
+Name: Create/clipboard reactive
+Description: New Addin Description
+Binding: create_reactiveClip
+Interactive: false
+
