@@ -184,7 +184,8 @@ browse_generator <- function(web){
 }
 web_output_filepath <- function(web){
   function(){
-    .root <- rprojroot::is_rstudio_project$make_fix_file()
+    .root <- find_webappRoot
+      # rprojroot::is_rstudio_project$make_fix_file()
     output_folder <-
       file.path(dirname(.root()), .GlobalEnv$web$foldername)
     if(!dir.exists(output_folder)) dir.create(output_folder)
@@ -218,7 +219,7 @@ config_cssJsPath_generator <- function(web){
     if(!is.null(cssJsPath)){
       web$cssJsPath <- cssJsPath
     } else {
-      .root <- rprojroot::is_rstudio_project$make_fix_file()
+      .root <- find_webappRoot#rprojroot::is_rstudio_project$make_fix_file()
       # file.path(
       #   .root(),
       #   {
@@ -227,7 +228,14 @@ config_cssJsPath_generator <- function(web){
       #     basename(dirname(currentSource$path))
       #   }) -> web$cssJsPath
       rstudioapi::getSourceEditorContext() -> currentSource
-      dirname(currentSource$path) -> web$cssJsPath
+      rootCssJs <- file.path(currentSource$path,"css")
+      rootJs <- file.path(currentSource$path, "js")
+      if(dir.exists(rootJs) && dir.exists(rootCss)){
+        dirname(currentSource$path) -> web$cssJsPath
+      } else {
+
+          file.path(dirname(currentSource$path),"assets") -> web$cssJsPath
+      }
     }
   }
 }
@@ -539,7 +547,8 @@ create_textJson <- function(web){
     #     dirname(web$output_filepath()),
     #     basename(jsonfilename)))
 
-    .root <- rprojroot::is_rstudio_project$make_fix_file()
+    .root <- find_webappRoot
+      #rprojroot::is_rstudio_project$make_fix_file()
 
     file.path(
       dirname(.root()),
@@ -586,7 +595,8 @@ initiateJson <- function(web){
 }
 generate_assets_dependency <- function(web){
   function(name, version, relativeSourcePath){
-    .root <- rprojroot::is_rstudio_project$make_fix_file()
+    .root <- find_webappRoot
+      #rprojroot::is_rstudio_project$make_fix_file()
     .htmlDependency <-
       htmltools::htmlDependency(
         name=name,
@@ -655,4 +665,9 @@ htmlDependency_path <- function(htmldep){
     setNames(css_path, subdir) -> output$stylesheet
   }
   return(output)
+}
+find_webappRoot <- function(){
+  rstudioapi::getSourceEditorContext() -> source
+  source$path
+  rprojroot::find_rstudio_root_file(path=dirname(source$path))
 }
