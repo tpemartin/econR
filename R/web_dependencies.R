@@ -11,11 +11,13 @@ materialise <- function() {
   mtl_js <- "js/materialize.min.js"
 
   htmltools::htmlDependency(
-    name = "mtl",
-    version = "1.0",
+    name = "materialise",
+    version = "1.0.0",
     src = c(href = mtl_cdn),
     stylesheet = mtl_css,
-    script = mtl_js
+    script = mtl_js,
+    meta = list(viewport="width=device-width, initial-scale=1.0"),
+    head = '<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">'
   )
 }
 jquery <- function(){
