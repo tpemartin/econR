@@ -159,23 +159,30 @@ generate_reactExpressionsFromDrakePlan <- function(drakePlan){
     command=drakePlan$command[whichHasRender]
   )
   render <- get_renderFunctionName(render)
-
+  conductorTargets <-
+    stringr::str_subset(
+      valid$targets, "^(input|output)_", negate=T
+    )
   list_exprs <- vector("list", length(valid$targets))
   for(.i in seq_along(valid$targets)){
-    list_exprs[[.i]] <- convert2reactExpression(valid$targets[[.i]], valid$drakePlan[.i,], render)
+    list_exprs[[.i]] <- convert2reactExpression(valid$targets[[.i]], valid$drakePlan[.i,], render, conductorTargets)
   }
   return(list_exprs)
 }
 
-convert2reactExpression <- function(targets, drakePlanX, render){
+convert2reactExpression <- function(targets, drakePlanX, render, conductorTargets){
   # drakePlanX = drakePlan[4,]
   commandX <- drakePlanX$command[[1]]
   targetX <- drakePlanX$target[[1]]
 
-  commandX <-
-    remove_duplicateTargetAssignment(targetX, commandX)
   commandX_react <-
-    addReactParenthesis(targets, commandX)
+    remove_duplicateTargetAssignment(targetX, commandX)
+  # browser()
+  if(length(conductorTargets) !=0){
+    commandX_react <-
+      addReactParenthesis(conductorTargets, commandX_react)
+  }
+
   renderFun <- "reactive("
   if(stringr::str_detect(targetX, "^output_")){
     outputId = stringr::str_remove(targetX, "^output_")
@@ -208,6 +215,7 @@ remove_duplicateTargetAssignment <- function(targetX, commandX){
 }
 addReactParenthesis <- function(targets, commandX){
   commandX_deparse <- paste0(deparse(commandX), collapse="\n")
+
   for(.x in targets){
     pattern = .x
     replacement = paste0(.x,"()")
