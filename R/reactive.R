@@ -20,7 +20,7 @@ create_serverFunction <- function(){
     msg="Please run drake$source_plan() first."
   )
 
-  filepathbasename = basename(stringr::str_replace(drake$activeRmd$filenames, "\\.[Rr][Mm][Dd]$",".R"))
+  filepathbasename = "server.R"
 
   .root <- rprojroot::is_rstudio_project$make_fix_file()
 
@@ -43,7 +43,7 @@ create_serverScript <- function(){
     msg="Drake plan does not exist. Please source_plan and makePlan.")
 
   drakePlan = .GlobalEnv$drake$.planEnvironment[[planname]]
-
+  # browser()
   generate_reactExpressionsFromDrakePlan(drakePlan) -> reactExprs
   purrr::map_chr(
     reactExprs,
@@ -158,11 +158,13 @@ generate_reactExpressionsFromDrakePlan <- function(drakePlan){
     targets=targets[whichHasRender],
     command=drakePlan$command[whichHasRender]
   )
+
   render <- get_renderFunctionName(render)
   conductorTargets <-
     stringr::str_subset(
       valid$targets, "^(input|output)_", negate=T
     )
+
   list_exprs <- vector("list", length(valid$targets))
   for(.i in seq_along(valid$targets)){
     list_exprs[[.i]] <- convert2reactExpression(valid$targets[[.i]], valid$drakePlan[.i,], render, conductorTargets)
@@ -177,40 +179,62 @@ convert2reactExpression <- function(targets, drakePlanX, render, conductorTarget
 
   commandX_react <-
     remove_duplicateTargetAssignment(targetX, commandX)
-  # browser()
+
   if(length(conductorTargets) !=0){
     commandX_react <-
       addReactParenthesis(conductorTargets, commandX_react)
   }
 
-  renderFun <- "reactive("
+  renderFun <- "reactive"
   if(stringr::str_detect(targetX, "^output_")){
     outputId = stringr::str_remove(targetX, "^output_")
     renderPattern = paste0("render_", outputId)
     if(renderPattern %in% render$targets) {
-      renderFun <- paste0(render$renderFunname[[which(render$targets == renderPattern)]],'(')
+      renderFun <- render$renderFunname[[which(render$targets == renderPattern)]]
     }
   }
 
-  reactExprX <-
+  renderFunExpr <- rlang::parse_expr(renderFun)
+  commandX_reactExpr <-
+  rlang::expr((!!renderFunExpr)(!!commandX_react))
 
-    rlang::parse_expr(paste0(targetX," <- ", renderFun,commandX_react,")"))
+  targetXExpr <- rlang::parse_expr(targetX)
+  reactExprX <- expr(
+    !!targetXExpr <- !!commandX_reactExpr
+  )
 
   return(reactExprX)
 }
 
 remove_duplicateTargetAssignment <- function(targetX, commandX){
   commandX_deparse <- deparse(commandX)
-  if(length(commandX_deparse)==1) return(commandX)
-  secondExpr <- stringr::str_remove_all(commandX_deparse[[2]],"\\s")
 
-  pattern = paste0(targetX,"(<-|=)\\{")
-  if(stringr::str_detect(secondExpr, pattern)) commandX_deparse <-
-    commandX_deparse[ - c(2, length(commandX_deparse)-1)]
+  pattern_targetAssignment <-
+    paste0(targetX, "\\s*(<-|=)\\s*")
+  whichHasTargetAssignment <-
+    stringr::str_which(commandX_deparse, pattern_targetAssignment)
 
-  pattern = paste0(targetX,"(<-|=)[^{]")
-  if(stringr::str_detect(secondExpr, pattern)) commandX_deparse[[2]] <- stringr::str_replace(secondExpr, paste0(targetX,"(<-|=)"), "")
-  commandX <- rlang::parse_expr(paste0(commandX_deparse, collapse="\n"))
+  if(length(whichHasTargetAssignment)!=0){
+    commandX_deparse_targetRemoved <-
+      commandX_deparse[
+        -c(whichHasTargetAssignment,
+          length(commandX_deparse)-whichHasTargetAssignment+1)
+      ]
+  }
+
+  commandX <- rlang::parse_expr(paste0(commandX_deparse_targetRemoved, collapse="\n"))
+  # # 如果只有一行,
+  # if(length(commandX_deparse)==1) return(commandX)
+  # secondExpr <- stringr::str_remove_all(commandX_deparse[[2]],"\\s")
+  # browser()
+  # pattern = stringr::regex(paste0(targetX,"(<-|=)\\{"), ignore_case=T)
+  #
+  # if(stringr::str_detect(secondExpr, pattern)) commandX_deparse <-
+  #   commandX_deparse[ - c(1, length(commandX_deparse))]
+  #
+  # pattern = paste0(targetX,"(<-|=)[^{]*")
+  # if(stringr::str_detect(secondExpr, pattern)) commandX_deparse[[2]] <- stringr::str_replace(secondExpr, paste0(targetX,"(<-|=)"), "")
+  # commandX <- rlang::parse_expr(paste0(commandX_deparse, collapse="\n"))
   return(commandX)
 }
 addReactParenthesis <- function(targets, commandX){
@@ -239,10 +263,11 @@ get_renderFunctionName <- function(render){
   purrr::map(
     seq_along(render$targets),
     ~{
-      deparse(render$command[[.x]])[[2]] -> renderDefinition
-      stringr::str_remove_all(renderDefinition,"\\s") -> renderDefinition
-      stringr::str_remove(renderDefinition,
-        paste0(render$targets[[.x]], "(<-|=)")) ->
+      deparse(render$command[[.x]]) -> renderDefinition
+      unlist(stringr::str_remove_all(renderDefinition,"[\\s{}]")) -> renderDefinition
+      unlist(stringr::str_remove(renderDefinition,
+        paste0(render$targets[[.x]], "(<-|=)"))) -> renderDefinition
+      stringr::str_subset(renderDefinition, stringr::boundary("word")) ->
         renderFun
       renderFun
     }
