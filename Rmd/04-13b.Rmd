@@ -236,6 +236,7 @@ monopoly4.optimize()
 monopoly4.optim_q
 monopoly4.optim_p
 ```
+
 ```{python}
 Monopoly.intercept = 100
 Monopoly.slope = 2

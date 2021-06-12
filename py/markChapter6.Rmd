@@ -1,0 +1,292 @@
+I re-write your Consumer class for you. I move all the class method that does not require `cls` out of class definition as helper functions that will be loaded to the global environment.
+
+In addition, there is no error. All class methods must start with `@classmethod`. 
+
+```{python}
+from numpy.random import default_rng
+from scipy import optimize
+import numpy as np
+
+
+class Consumer: 
+    p1=2
+    p2=5
+    def __init__(self, ialpha, iI):
+        self.alpha=ialpha
+        self.I= iI
+    def describe_budget_constraint(self):
+        def const_nonNeg(xnum,ynum):
+           return self.I-self.__class__.p1*xnum-self.__class__.p2*ynum
+        self.budget_constraint = ({ "type": "ineq", # Change to "eq" for equality constraint.
+        "fun": convert2arrayInputFunction(const_nonNeg)
+        })
+    def U(self,p): 
+        assert (
+          type(p) is list 
+          and len(p) == 2 
+          and all([ type(xi) is int or type(xi) is float for xi in p])
+        ), "p must be a List of two numbers."
+        return p[0]**self.alpha*p[1]**(1-self.alpha)
+    def optimise(self):
+        x0 = np.array([1,1])
+        res=optimize.minimize(
+          fun =negative_conversion(convertlistInput2arrayInputFunction(self.U)), 
+          x0=x0,
+          constraints= self.budget_constraint
+          )
+        self.x1=res.x[0]
+        self.x2=res.x[1]
+    @classmethod
+    def destroy(cls):
+        cls.world_consumers=[]
+    @classmethod
+    def Qd(cls, inputp1):
+        cls.p1=inputp1
+        for i in range(len(cls.world_consumers)):
+            cls.world_consumers[i].describe_budget_constraint()
+            cls.world_consumers[i].optimise()
+        return  sum([cls.world_consumers[j].x1 for j in range(len(cls.world_consumers))])
+
+## helper functions
+def convert2arrayInputFunction(f0):
+  def newFun(x_array):
+      return f0(*x_array)
+  return newFun
+
+def negative_conversion(fn):
+  def neg_fun(p):
+      return -1*fn(p)
+  return neg_fun
+
+def convert2arrayInputFunction(f0):
+  def newFun(x_array):
+      return f0(*x_array)
+  return newFun
+
+def convertlistInput2arrayInputFunction(F):
+   def newF(nparray):
+       listInput=nparray.tolist()
+       return F(listInput)
+   return newF
+
+```
+
+```{python}
+from numpy.random import default_rng
+from scipy import optimize
+import numpy as np
+
+
+class Consumer2: 
+    p1=2
+    p2=5
+    def __init__(self, ialpha, iI):
+        self.alpha=ialpha
+        self.I= iI
+    def describe_budget_constraint(self):
+        def const_nonNeg(xnum,ynum):
+           return self.I-self.__class__.p1*xnum-self.__class__.p2*ynum
+        self.budget_constraint = ({ "type": "ineq", # Change to "eq" for equality constraint.
+        "fun": convert2arrayInputFunction(const_nonNeg)
+        })
+    def U(self,p): 
+        assert (
+          type(p) is list 
+          and len(p) == 2 
+          and all([ type(xi) is int or type(xi) is float for xi in p])
+        ), "p must be a List of two numbers."
+        return p[0]**self.alpha*p[1]**(1-self.alpha)
+    def optimise(self):
+        x0 = np.array([1,1])
+        res=optimize.minimize(
+          fun =negative_conversion(convertlistInput2arrayInputFunction(self.U)), 
+          x0=x0,
+          constraints= self.budget_constraint
+          )
+        self.x1=res.x[0]
+        self.x2=res.x[1]
+    @classmethod
+    def destroy(cls):
+        cls.world_consumers=[]
+    def Qd(cls, inputp1):
+        cls.p1=inputp1
+        for i in range(len(cls.world_consumers)):
+            cls.world_consumers[i].describe_budget_constraint()
+            cls.world_consumers[i].optimise()
+        return  sum([cls.world_consumers[j].x1 for j in range(len(cls.world_consumers))])
+
+## helper functions
+def convert2arrayInputFunction(f0):
+  def newFun(x_array):
+      return f0(*x_array)
+  return newFun
+
+def negative_conversion(fn):
+  def neg_fun(p):
+      return -1*fn(p)
+  return neg_fun
+
+def convert2arrayInputFunction(f0):
+  def newFun(x_array):
+      return f0(*x_array)
+  return newFun
+
+def convertlistInput2arrayInputFunction(F):
+   def newF(nparray):
+       listInput=nparray.tolist()
+       return F(listInput)
+   return newF
+
+```
+
+## test Consumer
+
+```{python}
+from numpy.random import default_rng
+rng_alpha = default_rng(2020)
+rng_I = default_rng(2020)
+world_alpha = rng_alpha.uniform(0.2, 0.8, size=30)
+world_I = rng_I.uniform(500, 1000, size=30)
+Consumer.destroy()
+Consumer.world_consumers= [Consumer(alpha, I) for alpha, I in zip(world_alpha, world_I)]
+Consumer.world_consumers[0]
+Consumer.p2=5
+Consumer.Qd(1) # not Consumer.Qd(Consumer, 1) 
+Consumer.p1
+```
+
+```{python}
+Consumer2.world_consumers= [Consumer2(alpha, I) for alpha, I in zip(world_alpha, world_I)]
+Consumer2.Qd(Consumer2, 1)
+Consumer2.p1
+
+```
+
+However, there is still one problem left. After `Consumer.Qd(1)` is called, 
+
+```{python}
+Consumer.p1 # becomes 1 instead of fixing at 2. This will call producer problem since whether a producer checks its demand, market price p1 changes after the checking.
+```
+
+I leave this error for you to fix.
+
+
+## Producer1
+
+```{python}
+from scipy import optimize
+import numpy as np
+
+class Producer1:
+    def __init__(self, mc, Consumer):
+        self.mc=mc
+        self.Consumer=Consumer
+    def Qd(self, p1):
+        return self.Consumer.Qd(p1)
+    def cost(self, p1):
+        return self.mc*self.Consumer.Qd(p1)
+    def revenue(self, p1):
+        return p1*self.Consumer.Qd(p1)
+    def profit(self, p1):
+        return p1*self.Consumer.Qd(p1) - self.mc *self.Consumer.Qd(p1)
+    def optimise(self, x0=3):
+        optim = optimize.minimize(
+          fun=negative_conversion(self.profit),
+          x0=np.array([x0])
+        )
+        self.p1 = optim.x
+        self.x1 = self.Qd(self.p1)
+        return optim
+
+```
+
+## test Producer 1
+
+```{python}
+cocky = Producer1(5, Consumer)
+Consumer.p1
+
+cocky.Qd(3)
+cocky.cost(3)
+cocky.revenue(3)
+cocky.profit(3)
+Consumer.p2 = 5
+cocky.optimise()
+cocky.p1 
+cocky.x1 
+```
+
+
+```{python}
+consumer1 = Consumer(0.2, 500)
+consumer1.describe_budget_constraint();
+
+```
+
+```{python}
+consumer1.budget_constraint.get("fun")([1,2]) # 500 - 2*1 - 5*2
+
+```
+
+Now let p1 change to 3
+```{python}
+Consumer.p1 = 3
+consumer1.budget_constraint.get("fun")([1,2])
+```
+### difference between class method and instance method
+
+```{python}
+# Qd as an instance method
+class Consumer: 
+    p1=2
+    p2=5
+    :
+    @classmethod
+    def destroy(cls):
+        cls.world_consumers=[]
+    def Qd(cls, inputp1): # no @classmethod in front of Qd
+        cls.p1=inputp1
+        for i in range(len(cls.world_consumers)):
+            cls.world_consumers[i].describe_budget_constraint()
+            cls.world_consumers[i].optimise()
+        return  sum([cls.world_consumers[j].x1 for j in range(len(cls.world_consumers))])
+```
+
+In the above case, `Consumer.Qd` is an instance method that requires two inputs `cls` and `inputp1`. That is why you need to type `Consumer.Qd(Consumer, 1)` while typing `Consumer.Qd(1)` will throw an error of missing `inputp1` argument. In other word, your old code is like:
+```{python}
+class Consumer: 
+    p1=2
+    p2=5
+    :
+    def optimise(...):
+    :
+    def Qd(cls, inputp1):
+        cls.p1=inputp1
+        for i in range(len(cls.world_consumers)):
+            cls.world_consumers[i].describe_budget_constraint()
+            cls.world_consumers[i].optimise()
+        return  sum([cls.world_consumers[j].x1 for j in range(len(cls.world_consumers))])
+    @classmethod
+    def destroy(cls):
+        cls.world_consumers=[]
+
+```
+
+where `cls` in Qd represents a regular input argument not Consumer class itself. In this case, `Consumer.Qd(Consumer, 1)` definitely need `Consumer` input. However, if you use:
+```{python}
+    :
+    @classmethod
+    def destroy(cls):
+        cls.world_consumers=[]
+    @classmethod
+    def Qd(cls, inputp1): # no @classmethod in front of Qd
+      :
+```
+
+To get Qd, you only need to type `Consumer.Qd(1)` where `Consumer` class object itself is implicitly used as a cls input.
+
+
+In short, in Qd as a class method, you use `Consumer.Qd(1)`. In Qd as an instance method, you use `Consumer.Qd(Consumer, 1)`
+
+Now move to the p1 problem. For Qd as a class method, since cls represents `Consumer` class itself. `cls.p1=inputp1` will change `Consumer.p1` value. For Qd as an instance method, since you use `Consumer` as an input, and in Python a class object is mutable (that is why we can change its content along the way of usage). Therefore, use `Consumer` as input cls will behave like `cls=Consumer` that makes both identical sharing the same memory address. And later you use `cls.p1=inputp1` will alter `Consumer.p1` value as well.
+
