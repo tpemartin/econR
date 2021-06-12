@@ -43,7 +43,7 @@ create_serverScript <- function(){
     msg="Drake plan does not exist. Please source_plan and makePlan.")
 
   drakePlan = .GlobalEnv$drake$.planEnvironment[[planname]]
-  # browser()
+  #
   generate_reactExpressionsFromDrakePlan(drakePlan) -> reactExprs
   purrr::map_chr(
     reactExprs,
@@ -167,6 +167,7 @@ generate_reactExpressionsFromDrakePlan <- function(drakePlan){
 
   list_exprs <- vector("list", length(valid$targets))
   for(.i in seq_along(valid$targets)){
+
     list_exprs[[.i]] <- convert2reactExpression(valid$targets[[.i]], valid$drakePlan[.i,], render, conductorTargets)
   }
   return(list_exprs)
@@ -207,26 +208,33 @@ convert2reactExpression <- function(targets, drakePlanX, render, conductorTarget
 }
 
 remove_duplicateTargetAssignment <- function(targetX, commandX){
+  commandX <- removeOuterBracket(commandX)
+
+
   commandX_deparse <- deparse(commandX)
+  commandX_deparse_targetRemoved <-
+    removeTargetAssignment(targetX,
+      commandX_deparse)
 
-  pattern_targetAssignment <-
-    paste0(targetX, "\\s*(<-|=)\\s*")
-  whichHasTargetAssignment <-
-    stringr::str_which(commandX_deparse, pattern_targetAssignment)
 
-  if(length(whichHasTargetAssignment)!=0){
-    commandX_deparse_targetRemoved <-
-      commandX_deparse[
-        -c(whichHasTargetAssignment,
-          length(commandX_deparse)-whichHasTargetAssignment+1)
-      ]
-  }
+  # pattern_targetAssignment <-
+  #   paste0(targetX, "\\s*(<-|=)\\s*")
+  # whichHasTargetAssignment <-
+  #   stringr::str_which(commandX_deparse, pattern_targetAssignment)
+  #
+  # if(length(whichHasTargetAssignment)!=0){
+  #   commandX_deparse_targetRemoved <-
+  #     commandX_deparse[
+  #       -c(whichHasTargetAssignment,
+  #         length(commandX_deparse)-whichHasTargetAssignment+1)
+  #     ]
+  # }
 
   commandX <- rlang::parse_expr(paste0(commandX_deparse_targetRemoved, collapse="\n"))
   # # 如果只有一行,
   # if(length(commandX_deparse)==1) return(commandX)
   # secondExpr <- stringr::str_remove_all(commandX_deparse[[2]],"\\s")
-  # browser()
+  #
   # pattern = stringr::regex(paste0(targetX,"(<-|=)\\{"), ignore_case=T)
   #
   # if(stringr::str_detect(secondExpr, pattern)) commandX_deparse <-
@@ -274,4 +282,40 @@ get_renderFunctionName <- function(render){
   ) -> list_renderFun
   render$renderFunname = list_renderFun
   return(render)
+}
+removeOuterBracket <- function(commandX){
+  # commandX <- rlang::expr({ 2})
+  commandX_deparse <- deparse(commandX)
+  if(commandX_deparse[[1]]=="{") commandX_deparse <- commandX_deparse[-c(1, length(commandX_deparse))]
+  rlang::parse_expr(
+    paste0(commandX_deparse, collapse="\n")
+  )
+}
+removeTargetAssignment <- function(targetX, commandX_deparse) {
+  pattern_targetAssignmentNoBracket <-
+    paste0(targetX, "\\s*(<-|=)\\s*(?!\\{)")
+  whichHasTargetAssignmentNoBracket <- stringr::str_which(
+    commandX_deparse,
+    pattern_targetAssignmentNoBracket
+  )
+  pattern_targetAssignmentWithBracket <-
+    paste0(targetX, "\\s*(<-|=)\\s*(?=\\{)")
+  whichHasTargetAssignmentWithBracket <- stringr::str_which(
+    commandX_deparse,
+    pattern_targetAssignmentWithBracket
+  )
+
+  if (length(whichHasTargetAssignmentWithBracket) != 0) {
+    commandX_deparse <- commandX_deparse[
+      -c(1, length(commandX_deparse))
+    ]
+  } else
+    if (length(whichHasTargetAssignmentNoBracket) != 0) {
+      commandX_deparse[whichHasTargetAssignmentNoBracket] <-
+        stringr::str_remove(
+          commandX_deparse[whichHasTargetAssignmentNoBracket],
+          paste0(targetX, "\\s*(<-|=)\\s*")
+        )
+    }
+  return(commandX_deparse)
 }

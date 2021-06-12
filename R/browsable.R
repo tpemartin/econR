@@ -1,3 +1,60 @@
+#' Generate drake object ui browsable with dependencies attachment
+#'
+#' @param main_dependencies a taglist of html dependencies
+#'
+#' @return a function that attaches main_dependencies to an html objects in drake for browsing
+#' @export
+#'
+#' @examples none
+generate_drakebrowsable <- function(main_dependencies){
+  sym_main_dependencies <- rlang::ensym(main_dependencies)
+  # #browser()
+  # paste0("drake$loadTarget$", as.character(sym_main_dependencies),"()") -> chr_dep_expr
+
+  function(ui){
+    sym_ui <- rlang::ensym(ui)
+    paste0("drake$loadTarget$", as.character(sym_ui),"()") -> chr_expr
+    eval(parse(text=chr_expr), envir = .GlobalEnv)
+
+    # browser()
+    # # drake load main_dependencies if not exists
+    flag_exist_maindep <- exists(
+      as.character(sym_main_dependencies), envir = .GlobalEnv
+    )
+    if(!flag_exist_maindep) load_mainDependencies(sym_main_dependencies)
+    # if(!flag_exist_maindep) eval(parse(text=chr_dep_expr), envir = .GlobalEnv)
+
+    rlang::expr(
+      htmltools::browsable(
+        htmltools::tagList(
+          !!sym_ui,
+          main_dependencies
+        )
+      )
+    ) -> expr_browsable
+    rlang::eval_bare(
+      expr_browsable, env=.GlobalEnv
+    )
+  }
+}
+#' Generate browsable with dependencies attachment
+#'
+#' @param main_dependencies a taglist of html dependencies
+#'
+#' @return a function that attaches main_dependencies to an html objects for browsing
+#' @export
+#'
+#' @examples none
+generate_browsable <- function(main_dependencies){
+  function(ui){
+    htmltools::browsable(
+      htmltools::tagList(
+        ui,
+        main_dependencies
+      )
+    )
+  }
+}
 web_browsable <-
   function(experimental_element, rows="s12"){
     require(htmltools)
@@ -112,4 +169,9 @@ browsable_materialise <- function(...){
     ...
   ) -> html2browse
   htmltools::browsable(html2browse)
+}
+load_mainDependencies <- function(sym_mainDep){
+  paste0("eval(drake$loadTarget$", as.character(sym_mainDep), "(),
+    envir = .GlobalEnv)") -> chr_expr
+  eval(parse(text=chr_expr), envir = .GlobalEnv)
 }

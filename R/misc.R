@@ -1,3 +1,25 @@
+#' build file.path
+#'
+#' @param x a path
+#' @param y a path extention
+#'
+#' @return
+#' @export
+#'
+#' @examples x %//% y
+`%//%` <- function(x, y){
+  newpath <- file.path(x,y)
+  flag_file <-
+    stringr::str_detect(
+      basename(newpath),
+      "\\.[:alnum:]*$")
+  if(!flag_file){
+    if(!dir.exists(newpath)) dir.create(newpath, recursive = T)
+  }
+  return(newpath)
+}
+
+
 #' Generate a output path referring to the sibling folder of the project folder
 #'
 #' @param foldername a character, default="docs" for github page purpose
