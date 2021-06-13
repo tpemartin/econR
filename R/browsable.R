@@ -28,7 +28,7 @@ generate_drakebrowsable <- function(main_dependencies){
       htmltools::browsable(
         htmltools::tagList(
           !!sym_ui,
-          main_dependencies
+          !!sym_main_dependencies
         )
       )
     ) -> expr_browsable

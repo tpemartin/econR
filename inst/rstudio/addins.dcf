@@ -28,3 +28,8 @@ Description: New Addin Description
 Binding: addin_createServerScript
 Interactive: false
 
+Name: Create web
+Description: New Addin Description
+Binding: initiate_web
+Interactive: false
+

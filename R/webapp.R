@@ -23,7 +23,17 @@ Web <- function(){
     )
   # web$htmlDependencies$materialise <- materialise
 
-  web$output_filepath <- web_output_filepath(web)
+  flag_noWebpageNeeded <- !exists("foldername", envir=web) || !exists("html_filename", envir=web)
+  # if(flag_noWebpageNeeded){
+  #   dependencies <- getDependenciesFromDrake()
+  #   web$browse <-
+  #     generate_drakebrowsable2(dependencies)
+  #
+  # } else
+  {
+    attachMethodsRelated2outputfilepath(web)
+  }
+
 
   # web$browse <- browse_generator(web)
 
@@ -31,38 +41,8 @@ Web <- function(){
 
   web$translate_HTML_fromClipboard <- translate_HTML_fromClipboard(web)
 
-  web$browse <- function(port=8880){
-    if(exists("server", web)){
-      web$server$stop_server()
-    }
 
-    httwX <- tryCatch({
-      servr::httw(
-        dir=dirname(.GlobalEnv$web$output_filepath()),
-        baseurl=.GlobalEnv$web$html_filename,
-        port=port)
 
-    },
-    error=function(e){
-      servr::daemon_stop()
-      servr::httw(
-        dir=dirname(.GlobalEnv$web$output_filepath()),
-        baseurl=.GlobalEnv$web$html_filename,
-        port=port)
-
-    })
-    .GlobalEnv$web$server <- httwX
-    rstudioapi::viewer(
-      stringr::str_replace(
-        .GlobalEnv$web$server$url, "(?<=)[0-9\\.]+","localhost"
-      )
-    )
-  }
-
-  web$config_cssJsPath <- config_cssJsPath_generator(web)
-  web$config_cssJsPath()
-
-  web$update_css_js <- update_css_js(web)
 
   # web$translate_js_chunk <- web_translateJsChunk2RChunk(web)
   web$update <- web_update(web)
@@ -670,4 +650,77 @@ find_webappRoot <- function(){
   rstudioapi::getSourceEditorContext() -> source
   source$path
   rprojroot::find_rstudio_root_file(path=dirname(source$path))
+}
+getDependenciesFromDrake <- function(){
+  dependenciesName <-
+    .GlobalEnv$drake$activeRmd$frontmatter$dependencies
+  eval(
+    expression(
+      .GlobalEnv$drake$loadTarget[[dependenciesName]]()),
+    envir = .GlobalEnv)
+  sym_dependencies <- sym(dependenciesName)
+  expr_dep <- rlang::expr(
+    dependencies <- !!sym_dependencies
+  )
+  rlang::eval_bare(
+    expr_dep
+  )
+  return(dependencies)
+}
+attachMethodsRelated2outputfilepath <- function(web)
+{
+
+  web$output_filepath <- web_output_filepath(web)
+  web$browse <- function(port=8880){
+    if(exists("server", web)){
+      web$server$stop_server()
+    }
+
+    httwX <- tryCatch({
+      servr::httw(
+        dir=dirname(.GlobalEnv$web$output_filepath()),
+        baseurl=.GlobalEnv$web$html_filename,
+        port=port)
+
+    },
+      error=function(e){
+        servr::daemon_stop()
+        servr::httw(
+          dir=dirname(.GlobalEnv$web$output_filepath()),
+          baseurl=.GlobalEnv$web$html_filename,
+          port=port)
+
+      })
+    .GlobalEnv$web$server <- httwX
+    rstudioapi::viewer(
+      stringr::str_replace(
+        .GlobalEnv$web$server$url, "(?<=)[0-9\\.]+","localhost"
+      )
+    )
+  }
+
+  web$config_cssJsPath <- config_cssJsPath_generator(web)
+  web$config_cssJsPath()
+
+  web$update_css_js <- update_css_js(web)
+}
+generate_drakebrowsable2 <- function(dependencies){
+
+  function(ui){
+    sym_ui <- rlang::ensym(ui)
+    paste0("drake$loadTarget$", as.character(sym_ui),"()") -> chr_expr
+    eval(parse(text=chr_expr), envir = .GlobalEnv)
+
+    rlang::expr(
+      htmltools::browsable(
+        htmltools::tagList(
+          !!sym_ui,
+          dependencies
+        )
+      )
+    ) -> expr_browsable
+    rlang::eval_bare(
+      expr_browsable, env=.GlobalEnv
+    )
+  }
 }
