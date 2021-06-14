@@ -18,9 +18,20 @@ internalData <- function(){
 #'
 #' @examples none
 googleLink_download <- function(googleSharedLink,
-  destfolder=destfolder){
+  destfolder=NULL){
   googledrive::as_dribble(googleSharedLink) -> drb
-  googledrive::drive_ls(drb) -> allFiles
+  if(
+    drb$drive_resource[[1]]$kind=="drive#file"
+  ){
+    allFiles <- drb
+  } else {
+    googledrive::drive_ls(drb) -> allFiles
+  }
+
+  if(is.null(destfolder)){
+    .root <- rprojroot::is_rstudio_project$make_fix_file()
+    destfolder = .root()
+  }
   if(!dir.exists(destfolder)) dir.create(destfolder)
 
   purrr::walk(

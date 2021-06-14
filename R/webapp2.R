@@ -30,11 +30,25 @@ Web2 <- function(){
 
 
     web$browsable <- function(ui){
-      sym_ui <- rlang::ensym(ui)
-      .GlobalEnv$drake$loadTarget[[as.character(sym_ui)]]()
-      htmltools::browsable(
+      tryCatch({
+        sym_ui <- rlang::ensym(ui)
+        if(
+          is.null(.GlobalEnv[[as.character(sym_ui)]])
+        ){
+          .GlobalEnv$drake$loadTarget[[as.character(sym_ui)]]()
+          ui_element = .GlobalEnv[[as.character(sym_ui)]]
+        }
+        ui_element
+      },
+        error=function(e){
+          ui_element=ui
+          ui_element
+        }) -> ui_element
+
+
+      viewer_browsable(
         htmltools::tagList(
-          .GlobalEnv[[as.character(sym_ui)]],
+          ui_element,
           web$htmlDependencies
         )
       )
@@ -50,7 +64,7 @@ Web2 <- function(){
 
 
 
-  flag_webpageOutputNeeded <- !is.null(.GlobalEnv$drake$activeRmd$filenames)
+  flag_webpageOutputNeeded <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag)
   if(flag_webpageOutputNeeded){
     attachMethod_getOutputFilepath(web) -> web
     attachMethodsRelated2outputfilepath2(web) -> web
@@ -181,4 +195,11 @@ parse_frontmatter <- function(string){
     return(string)
   }
 
+}
+viewer_browsable <- function(ui_browsable){
+  output_filepath <- tempdir() %//% "index.html"
+  htmltools::save_html(
+    ui_browsable, file=output_filepath
+  )
+  rstudioapi::viewer(url=output_filepath)
 }
