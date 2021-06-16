@@ -29,11 +29,11 @@ Web2 <- function(){
       .GlobalEnv[[drake$activeRmd$frontmatter$dependencies]]
 
 
-    web$browsable <- function(ui){
+    web$browsable <- function(ui, reload=T){
       tryCatch({
         sym_ui <- rlang::ensym(ui)
         if(
-          is.null(.GlobalEnv[[as.character(sym_ui)]])
+          is.null(.GlobalEnv[[as.character(sym_ui)]]) || reload
         ){
           .GlobalEnv$drake$loadTarget[[as.character(sym_ui)]]()
           ui_element = .GlobalEnv[[as.character(sym_ui)]]

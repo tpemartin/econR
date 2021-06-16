@@ -33,3 +33,8 @@ Description: New Addin Description
 Binding: initiate_web
 Interactive: false
 
+Name: Download github link
+Description: New Addin Description
+Binding: githublink_download_open
+Interactive: false
+
