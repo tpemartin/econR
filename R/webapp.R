@@ -256,40 +256,55 @@ translate_imgTag <- function(txt){
 }
 update_css_js <- function(web){
   function(){
-    cssFolder <-
-      file.path(web$cssJsPath,"css")
-    jsFolder <-
-      file.path(web$cssJsPath,"js")
+    if(!is.null(web$htmlDependencies)){
+      web$output_filepath()
+      save_html(
+        web$htmlDependencies,
+        file = dirname(web$output_filepath()) %//% "temp.html"
+      )
+      file.remove(
+        dirname(web$output_filepath()) %//% "temp.html"
+      )
 
-    .GlobalEnv$drake$loadTarget$myDependency()
-    scriptFrom =
-      file.path(myDependency$src,
-                myDependency$script)
-    styleFrom =
-      file.path(myDependency$src,
-                myDependency$stylesheet)
-    libName = paste0(myDependency$name,"-",myDependency$version)
-    libPath = file.path(
-      dirname(web$output_filepath()),"lib",
-      libName
-    )
-    scriptTo =
-      file.path(libPath,
-                myDependency$script)
-    styleTo =
-      file.path(libPath,
-                myDependency$stylesheet)
+    } else
+    {
+      cssFolder <-
+        file.path(web$cssJsPath,"css")
+      jsFolder <-
+        file.path(web$cssJsPath,"js")
 
-    file.copy(
-      from = scriptFrom,
-      to = scriptTo,
-      overwrite = T
-    )
-    file.copy(
-      from = styleFrom,
-      to = styleTo,
-      overwrite = T
-    )
+      .GlobalEnv$drake$loadTarget$myDependency()
+      scriptFrom =
+        file.path(myDependency$src,
+          myDependency$script)
+      styleFrom =
+        file.path(myDependency$src,
+          myDependency$stylesheet)
+      libName = paste0(myDependency$name,"-",myDependency$version)
+      libPath = file.path(
+        dirname(web$output_filepath()),"lib",
+        libName
+      )
+      scriptTo =
+        file.path(libPath,
+          myDependency$script)
+      styleTo =
+        file.path(libPath,
+          myDependency$stylesheet)
+
+      file.copy(
+        from = scriptFrom,
+        to = scriptTo,
+        overwrite = T
+      )
+      file.copy(
+        from = styleFrom,
+        to = styleTo,
+        overwrite = T
+      )
+
+    }
+
   }
 
 }

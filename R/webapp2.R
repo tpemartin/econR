@@ -82,6 +82,7 @@ Web2 <- function(){
 
 
   # web$translate_js_chunk <- web_translateJsChunk2RChunk(web)
+  web$update_dependencies <- update_css_js(web)
   web$update <- web_update(web)
   web$update_hard <- web_update_hard(web)
 
@@ -127,6 +128,10 @@ attachMethod_getOutputFilepath <- function(web){
   }
 
   # load saving object and save
+  assertthat::assert_that(
+    !is.null(drake$loadTarget[[objectname]]),
+    msg=glue::glue("frontmatter output object '{objectname}' does not exist in drake targets.")
+  )
   drake$loadTarget[[objectname]]()
   htmltools::save_html(
     htmltools::tagList(
