@@ -29,3 +29,27 @@ convert_poly_multipoly_into_multipolyOnly <- function(sf_data){
   sf_data$geometry <- sf::st_sfc(sf_data$geometry)
   return(sf_data)
 }
+#' A fixture to OSM simple feature date name error problem
+#' @description A quick fix when 'Error in do.call(rbind, x) : variable names are limited to 10000 bytes' happens.
+#' @param sf_object An sf object
+#'
+#' @return
+#' @export
+#'
+#' @examples none
+osm_geom_rename <- function(sf_object){
+  require(sf)
+  require(dplyr)
+  sf_object %>%
+    st_geometry() -> sfc_sf_object
+  for(i in seq_along(sfc_sf_object)){
+    names(sfc_sf_object[[i]][[1]]) <-
+      1:length(names(sfc_sf_object[[i]][[1]]))
+  }
+
+  sf_object %>%
+    st_set_geometry(
+      sfc_sf_object
+    ) -> sf_object2
+  return(sf_object2)
+}
