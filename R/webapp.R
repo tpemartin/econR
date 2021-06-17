@@ -19,7 +19,7 @@ Web <- function(){
   web$htmlDependencies <-
     append(
       web$htmlDependencies,
-      html_dependency()
+      html_dependencies()
     )
   # web$htmlDependencies$materialise <- materialise
 
@@ -256,54 +256,61 @@ translate_imgTag <- function(txt){
 }
 update_css_js <- function(web){
   function(){
-    if(!is.null(web$htmlDependencies)){
+    if(!is.null(web$dependencies)){
       web$output_filepath()
       save_html(
-        web$htmlDependencies,
+        web$dependencies,
         file = dirname(web$output_filepath()) %//% "temp.html"
       )
       file.remove(
         dirname(web$output_filepath()) %//% "temp.html"
       )
 
-    } else
-    {
-      cssFolder <-
-        file.path(web$cssJsPath,"css")
-      jsFolder <-
-        file.path(web$cssJsPath,"js")
-
-      .GlobalEnv$drake$loadTarget$myDependency()
-      scriptFrom =
-        file.path(myDependency$src,
-          myDependency$script)
-      styleFrom =
-        file.path(myDependency$src,
-          myDependency$stylesheet)
-      libName = paste0(myDependency$name,"-",myDependency$version)
-      libPath = file.path(
-        dirname(web$output_filepath()),"lib",
-        libName
+    } else {
+      .GlobalEnv$drake$loadTarget$html_complete()
+      htmltools::save_html(
+        html_complete,
+        file = web$output_filepath(),
+        libdir="lib"
       )
-      scriptTo =
-        file.path(libPath,
-          myDependency$script)
-      styleTo =
-        file.path(libPath,
-          myDependency$stylesheet)
-
-      file.copy(
-        from = scriptFrom,
-        to = scriptTo,
-        overwrite = T
-      )
-      file.copy(
-        from = styleFrom,
-        to = styleTo,
-        overwrite = T
-      )
-
     }
+    # {
+    #   cssFolder <-
+    #     file.path(web$cssJsPath,"css")
+    #   jsFolder <-
+    #     file.path(web$cssJsPath,"js")
+    #
+    #   .GlobalEnv$drake$loadTarget$myDependency()
+    #   scriptFrom =
+    #     file.path(myDependency$src,
+    #       myDependency$script)
+    #   styleFrom =
+    #     file.path(myDependency$src,
+    #       myDependency$stylesheet)
+    #   libName = paste0(myDependency$name,"-",myDependency$version)
+    #   libPath = file.path(
+    #     dirname(web$output_filepath()),"lib",
+    #     libName
+    #   )
+    #   scriptTo =
+    #     file.path(libPath,
+    #       myDependency$script)
+    #   styleTo =
+    #     file.path(libPath,
+    #       myDependency$stylesheet)
+    #
+    #   file.copy(
+    #     from = scriptFrom,
+    #     to = scriptTo,
+    #     overwrite = T
+    #   )
+    #   file.copy(
+    #     from = styleFrom,
+    #     to = styleTo,
+    #     overwrite = T
+    #   )
+    #
+    # }
 
   }
 
@@ -717,7 +724,7 @@ attachMethodsRelated2outputfilepath <- function(web)
   web$config_cssJsPath <- config_cssJsPath_generator(web)
   web$config_cssJsPath()
 
-  web$update_css_js <- update_css_js(web)
+  web$update_dependencies <- update_css_js(web)
 }
 generate_drakebrowsable2 <- function(dependencies){
 

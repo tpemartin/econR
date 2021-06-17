@@ -45,7 +45,7 @@ web_update <- web_translateJsChunk2RChunk <- function(web){
       stop("length(jsBreaks) is neither 0 nor 2.")
     }
     if(update){
-      .GlobalEnv$web$update_css_js()
+      .GlobalEnv$web$update_dependencies()
       .GlobalEnv$drake$update()
     } else {
       # if update_hard

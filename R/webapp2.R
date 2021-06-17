@@ -25,7 +25,7 @@ Web2 <- function(){
   if(!flag_nofrontmatterDependencies){
     # throw dependencies to .GlobalEnv
       drake$loadTarget[[drake$activeRmd$frontmatter$dependencies]]()
-    web$htmlDependencies <-
+    web$dependencies <-
       .GlobalEnv[[drake$activeRmd$frontmatter$dependencies]]
 
 
@@ -49,7 +49,7 @@ Web2 <- function(){
       viewer_browsable(
         htmltools::tagList(
           ui_element,
-          web$htmlDependencies
+          web$dependencies
         )
       )
 
@@ -136,7 +136,7 @@ attachMethod_getOutputFilepath <- function(web){
   htmltools::save_html(
     htmltools::tagList(
       .GlobalEnv[[objectname]],
-      web$htmlDependencies
+      web$dependencies
       ),
     file = web$output_filepath(),
     libdir="lib")
