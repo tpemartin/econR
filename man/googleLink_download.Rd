@@ -4,7 +4,7 @@
 \alias{googleLink_download}
 \title{Download Google drive shared link to a destination folder}
 \usage{
-googleLink_download(googleSharedLink, destfolder = destfolder)
+googleLink_download(googleSharedLink, destfolder = NULL)
 }
 \arguments{
 \item{googleSharedLink}{A shared link}

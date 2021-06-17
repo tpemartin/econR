@@ -1,4 +1,10 @@
-html_dependency <- function(){
+#' Create a list of dependencies to choose
+#'
+#' @return
+#' @export
+#'
+#' @examples none
+html_dependencies <- function(){
   list(
     materialise = materialise,
     jquery = jquery
