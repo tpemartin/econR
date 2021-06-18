@@ -49,6 +49,7 @@ web_update <- web_translateJsChunk2RChunk <- function(web){
       .GlobalEnv$drake$update()
     } else {
       # if update_hard
+      unlink(.GlobalEnv$drake$activeRmd$frontmatter$drake_cache, recursive = T)
       .GlobalEnv$drake <- rmd2drake::Drake()
       .GlobalEnv$drake$source_plan()
       .GlobalEnv$drake$makePlan()
@@ -105,11 +106,11 @@ web_update_hard <- function(web){
     }
     if(update){
       # if update_hard
+      drakeCachePath <- .GlobalEnv$drake$activeRmd$frontmatter$drake_cache
+      if(dir.exists(drakeCachePath)) unlink(drakeCachePath, recursive = T)
 
       .GlobalEnv$drake <- rmd2drake:::Drake()
 
-      drakeCachePath <- .GlobalEnv$drake$activeRmd$frontmatter$drake_cache
-      if(dir.exists(drakeCachePath)) unlink(drakeCachePath, recursive = T)
       .GlobalEnv$drake$source_plan()
       .GlobalEnv$drake$makePlan()
     }

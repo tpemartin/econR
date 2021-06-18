@@ -83,8 +83,25 @@ Web2 <- function(){
 
   # web$translate_js_chunk <- web_translateJsChunk2RChunk(web)
   web$update_dependencies <- update_css_js(web)
-  web$update <- web_update(web)
-  web$update_hard <- web_update_hard(web)
+
+  web$update_output <- update_htmloutput
+
+  update <- web_update(web)
+
+  web$update <- function(){
+
+    update()
+    update_htmloutput()
+  }
+
+  update_hard <- web_update_hard(web)
+
+  web$update_hard <- function(){
+
+    update_hard()
+    update_htmloutput()
+    }
+
 
   web$assets <- list()
   web$assets$generate_dependency <- generate_assets_dependency(web)
@@ -207,4 +224,36 @@ viewer_browsable <- function(ui_browsable){
     ui_browsable, file=output_filepath
   )
   rstudioapi::viewer(url=output_filepath)
+}
+
+obtain_activeSourceEditorFrontmatter <- function(){
+  fileX <- rstudioapi::getSourceEditorContext()
+  rstudioapi::documentSave(id=fileX$id)
+  frontmatters <- rmarkdown::yaml_front_matter(fileX$path)
+  return(frontmatters)
+}
+obtain_htmlOutputSetup <- function(){
+  frontmatters <- obtain_activeSourceEditorFrontmatter()
+  html_tagSetup <- parse_htmlTagSetup(frontmatters$output$html_tag)
+  return(html_tagSetup)
+}
+
+parse_htmlTagSetup <- function(html_tagSetup){
+  purrr::map(html_tagSetup, econR:::parse_frontmatter) -> html_tagSetup
+  return(html_tagSetup)
+}
+
+
+update_htmloutput <- function(){
+  outputSetup <-  obtain_htmlOutputSetup()
+  objectname <- outputSetup$object
+
+  .GlobalEnv$drake$loadTarget[[objectname]]()
+  htmltools::save_html(
+    htmltools::tagList(
+      web$dependencies,
+      .GlobalEnv[[objectname]]
+    ),
+    file=web$output_filepath()
+  )
 }
