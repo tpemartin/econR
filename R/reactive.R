@@ -230,6 +230,14 @@ remove_duplicateTargetAssignment <- function(targetX, commandX){
   #     ]
   # }
 
+  flag_notStartWithBracket <-
+    stringr::str_detect(
+      commandX_deparse_targetRemoved[[1]],
+      "^\\{", negate=T)
+  if(flag_notStartWithBracket){
+    commandX_deparse_targetRemoved <-
+      c("{", commandX_deparse_targetRemoved, "}")
+  }
   commandX <- rlang::parse_expr(paste0(commandX_deparse_targetRemoved, collapse="\n"))
   # # 如果只有一行,
   # if(length(commandX_deparse)==1) return(commandX)

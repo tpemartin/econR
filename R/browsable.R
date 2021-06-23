@@ -48,7 +48,7 @@ generate_drakebrowsable <- function(main_dependencies){
 generate_browsable <- function(main_dependencies){
   function(ui){
     htmltools::browsable(
-      htmltools::tagList(
+      htmltools::attachDependencies(
         ui,
         main_dependencies
       )
@@ -125,11 +125,11 @@ web_browsable <-
 
     ## ----html_complete------------------------------------------------------------------------
     html_complete <-
-      htmltools::tagList(
+      htmltools::attachDependencies(
         html_placeholder,
-        .GlobalEnv$web$htmlDependencies$materialise(),
+        list(.GlobalEnv$web$htmlDependencies$materialise(),
         local_jquery,
-        myDependency
+        myDependency)
       )
 
 

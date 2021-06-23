@@ -735,7 +735,7 @@ generate_drakebrowsable2 <- function(dependencies){
 
     rlang::expr(
       htmltools::browsable(
-        htmltools::tagList(
+        htmltools::attachDependencies(
           !!sym_ui,
           dependencies
         )

@@ -47,7 +47,7 @@ Web2 <- function(){
 
 
       viewer_browsable(
-        htmltools::tagList(
+        htmltools::attachDependencies(
           ui_element,
           web$dependencies
         )
@@ -151,7 +151,7 @@ attachMethod_getOutputFilepath <- function(web){
   )
   drake$loadTarget[[objectname]]()
   htmltools::save_html(
-    htmltools::tagList(
+    htmltools::attachDependencies(
       .GlobalEnv[[objectname]],
       web$dependencies
       ),
@@ -250,10 +250,14 @@ update_htmloutput <- function(){
 
   .GlobalEnv$drake$loadTarget[[objectname]]()
   htmltools::save_html(
-    htmltools::tagList(
-      web$dependencies,
-      .GlobalEnv[[objectname]]
+    htmltools::attachDependencies(
+      .GlobalEnv[[objectname]],
+      web$dependencies
     ),
+    # htmltools::tagList(
+    #   web$dependencies,
+    #   .GlobalEnv[[objectname]]
+    # ),
     file=web$output_filepath()
   )
 }
