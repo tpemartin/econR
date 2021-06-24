@@ -2,6 +2,7 @@ addin_createUIRds <- function(){
   rmd2drake:::Drake() -> .GlobalEnv$drake
   .GlobalEnv$drake$source_plan()
   .GlobalEnv$drake$makePlan()
+
 }
 
 addin_createServerScript <- function(){

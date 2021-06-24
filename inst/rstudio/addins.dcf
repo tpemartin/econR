@@ -38,3 +38,8 @@ Description: New Addin Description
 Binding: githublink_download_open
 Interactive: false
 
+Name: Create App
+Description: New Addin Description
+Binding: initiate_app
+Interactive: false
+

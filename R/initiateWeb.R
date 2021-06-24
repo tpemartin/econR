@@ -1,3 +1,4 @@
+
 initiate_web <- function(){
   .GlobalEnv$drake <- rmd2drake:::Drake()
   .GlobalEnv$drake$source_plan()
