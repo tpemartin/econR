@@ -1,14 +1,36 @@
 initiate_app <- function(){
+  library(econR)
+  library(dplyr)
+  appSystem <- get_currentRmd()
+  appSystem <- check_yaml(appSystem)
+  appSystem %>%
+    check_Rproject()
+
   .GlobalEnv$drake <- rmd2drake:::Drake()
   .GlobalEnv$drake$source_plan()
   .GlobalEnv$drake$makePlan()
-  flag_serverRmd <-
-    is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$shiny_app$ui)
-  if(flag_serverRmd){
-    econR::AppServer()
-  } else {
-    econR::AppUI()
-  }
+
+  attach_appSystem2drake(appSystem)
+
+  check_RmdType() -> rmdType
+
+  setup_app(appSystem)
+
+  resolveAppDependencies()
+
+  switch(
+    rmdType,
+    "server"={AppServer()},
+    "ui"={AppUI()},
+    {stop("This is neither a server.Rmd nor ui.Rmd file")}
+  )
+
+  create_appProject()
+
+  # # if app completes then,
+  # rstudioapi::initializeProject(.GlobalEnv$app$appPath)
+  # rstudioapi::openProject(.GlobalEnv$app$appPath,T)
+
 }
 
 create_serverFunction2 <- function(){
@@ -54,25 +76,8 @@ AppServer <- function(){
     exists("drake", envir=.GlobalEnv),
     msg="There is no drake in global environment. Please initiate drake.")
 
-  if(is.null(.GlobalEnv$app))
-  { app <- new.env()} else
-  { app <- .GlobalEnv$app }
-
-  .GlobalEnv$drake$update()
-
-  flag_isUIrmd <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$shiny_app$ui)
-  assertthat::assert_that(
-    !flag_isUIrmd,
-    msg="This a UI rmd, not server rmd"
-  )
-  app$directory <- econR:::parse_frontmatter( .GlobalEnv$drake$activeRmd$frontmatter$output$shiny_app$dirpath)
-  app$server$filepath <-
-    app$directory %//% "server.R"
-
-  app$support_dir <- econR:::parse_frontmatter(
-    .GlobalEnv$drake$activeRmd$frontmatter$output$shiny_app
-    $supporting_dir
-  )
+  .GlobalEnv$app$server$filepath <-
+    .GlobalEnv$app$appPath %//% "server.R"
 
   updateServer_fromDrake()
 
@@ -88,14 +93,10 @@ AppServer <- function(){
   }
 
   # move supporting files
-  from = app$support_dir
-  to = app$directory
-  file.copy(
-    from, to, overwrite=T, recursive=T
-  )
+  file.copy(app$supporting_dir, app$appPath, overwrite=T, recursive = T)
 
   app$copy2dir <- function(from, ...){
-    to = app$directory %//% basename(from)
+    to = app$appPath %//% basename(from)
     file.copy(from, to, ...)
   }
 
@@ -122,75 +123,59 @@ AppUI <- function(){
     exists("drake", envir=.GlobalEnv),
     msg="There is no drake in global environment. Please initiate drake.")
 
-  if(is.null(.GlobalEnv$app))
-  { app <- new.env()} else
-  { app <- .GlobalEnv$app }
-
   app$ui$rmdfilename <- .GlobalEnv$drake$activeRmd$filenames
 
   drake <- .GlobalEnv$drake
 
-  flag_nofrontmatterDependencies <-
-    is.null(drake$activeRmd$frontmatter$dependencies)
-  if(flag_nofrontmatterDependencies) warning("no dependencies: 'dep_object_name' set in frontmatter.\n app$ui_browsable will have no default dependency.")
 
-  # attach htmlDependencies and browsable
-  if(!flag_nofrontmatterDependencies){
-    # throw dependencies to .GlobalEnv
-    drake$loadTarget[[drake$activeRmd$frontmatter$dependencies]]()
-    app$ui$dependencies <-
-      .GlobalEnv[[drake$activeRmd$frontmatter$dependencies]]
+  econR:::saveUIRds(.GlobalEnv$app) -> .GlobalEnv$app
 
+  # create browsable
+  .GlobalEnv$app$ui$browsable <-
+    econR:::generate_uibrowsable(.GlobalEnv$app$ui$dependencies)
 
-    app$ui_browsable <- generate_uibrowsable(app$ui$dependencies)
-
+  .GlobalEnv$app$ui$browse_ui <- function(){
+    .GlobalEnv$app$ui$browsable(ui)
   }
 
-  # assertthat::assert_that(
-  #   exists("drake", envir=.GlobalEnv),
-  #   msg="There is no drake in global environment. Please initiate drake."
-  # )
+  save_ui()
 
-  saveUIRds(app) -> app
-
-  app$browse_ui <- function(reload=T){
-    app$ui_browsable(ui, reload)
+  .GlobalEnv$app$ui$browse_ui <- function(reload=T){
+    .GlobalEnv$app$ui$browsable(ui, reload)
   }
 
   # web$browse <- browse_generator(web)
 
 
-  app$translate_HTML2rTags <- econR:::convertHTML2RTags
+  .GlobalEnv$app$translate_HTML2rTags <- econR:::convertHTML2RTags
 
-  app$translate_HTML_fromClipboard <- econR:::translate_HTML_fromClipboard(app)
+  .GlobalEnv$app$translate_HTML_fromClipboard <-
+    function(){
+      .GlobalEnv$app$translate_HTML2rTags(
+        clipr::read_clip()
+      )
+    }
 
-  app$ui$update <- function(){
+  # .GlobalEnv$app$ui$update <- function(){
+  #
+  #   activeFile <- rstudioapi::getSourceEditorContext()
+  #   rstudioapi::documentSave(id=activeFile$id)
+  #
+  #   .GlobalEnv$drake$update()
+  #
+  #   flag_isUIrmd <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$shiny_app$ui)
+  #   assertthat::assert_that(
+  #     flag_isUIrmd,
+  #     msg="This is not a UI rmd"
+  #   )
+  #
+  #   updateUI_fromDrake()
+  #
+  # }
 
-    activeFile <- rstudioapi::getSourceEditorContext()
-    rstudioapi::documentSave(id=activeFile$id)
 
-    .GlobalEnv$drake$update()
 
-    flag_isUIrmd <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$shiny_app$ui)
-    assertthat::assert_that(
-      flag_isUIrmd,
-      msg="This is not a UI rmd"
-    )
-
-    updateUI_fromDrake()
-
-  }
-
-  temphtml_filepath <- file.path(
-    app$directory,"temp.html")
-  .GlobalEnv$drake$loadTarget$dependencies()
-  htmltools::save_html(
-    htmltools::attachDependencies(ui, dependencies),
-    file=temphtml_filepath
-  )
-  file.remove(temphtml_filepath)
-
-  .GlobalEnv$app <- app
+  # .GlobalEnv$app <- app
 }
 
 # helpers -----------------------------------------------------------------
@@ -212,12 +197,12 @@ updateUI_fromDrake <- function(){
 
 saveUIRds <- function(app){
   drake <- .GlobalEnv$drake
-  econR:::parse_frontmatter(drake$activeRmd$frontmatter$output$shiny_app$dirpath) -> dirpath
+  econR:::parse_frontmatter(drake$activeRmd$frontmatter$output$shiny_app$appPath) -> appPath
   econR:::parse_frontmatter(
     drake$activeRmd$frontmatter$output$shiny_app$ui
   ) -> uiname
 
-  app$ui$Rds_filepath <- file.path(dirpath, paste0(uiname,".Rds"))
+  app$ui$Rds_filepath <- file.path(appPath, paste0(uiname,".Rds"))
 
 
   # load saving object and save
@@ -229,13 +214,20 @@ saveUIRds <- function(app){
   saveRDS(
     htmltools::attachDependencies(
       .GlobalEnv[[uiname]],
-      app$ui$dependencies
+      app$dependencies
     ),
     file = app$ui$Rds_filepath)
 
   return(app)
 }
+checkDependencyName <- function(dependencies){
 
+  purrr::map_chr(
+    dependencies,
+    ~{ .x$name}
+  )
+
+}
 generate_uibrowsable <- function(dependencies){
   function(ui, reload=T){
     tryCatch({
@@ -283,12 +275,5 @@ app_update <- function(){
 updateServer_fromDrake <- function(){
   .GlobalEnv$app$server$rmdfilename <-
     .GlobalEnv$drake$activeRmd$filenames
-
-
-  .GlobalEnv$app$server$dependencies <-
-    .GlobalEnv[[.GlobalEnv$drake$activeRmd$frontmatter$dependencies]]
-
-
-  .GlobalEnv$app$server_browsable <- econR:::generate_uibrowsable(.GlobalEnv$app$server$dependencies)
 
 }

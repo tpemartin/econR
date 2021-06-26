@@ -197,6 +197,7 @@ convert2reactExpression <- function(targets, drakePlanX, render, conductorTarget
   }
 
   renderFunExpr <- rlang::parse_expr(renderFun)
+  if(is.character(commandX_react)) commandX_react = rlang::parse_expr(commandX_react)
   commandX_reactExpr <-
   rlang::expr((!!renderFunExpr)(!!commandX_react))
 
