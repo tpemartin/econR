@@ -16,12 +16,21 @@ initiate_app <- function(){
 
   setup_app(appSystem)
 
-  resolveAppDependencies()
+  # resolveAppDependencies()
+  # attachDependencies2UIandSave2www()
 
   switch(
     rmdType,
     "server"={AppServer()},
-    "ui"={AppUI()},
+    "ui"={
+      AppUI()
+      attachDependencies2UIandSave2www()
+      flag_serverRexists <-
+        file.exists(
+          .GlobalEnv$app$appPath %//% "server.R"
+        )
+      if(flag_serverRexists) create_appR()
+      },
     {stop("This is neither a server.Rmd nor ui.Rmd file")}
   )
 
@@ -30,6 +39,8 @@ initiate_app <- function(){
   # # if app completes then,
   # rstudioapi::initializeProject(.GlobalEnv$app$appPath)
   # rstudioapi::openProject(.GlobalEnv$app$appPath,T)
+
+
 
 }
 
@@ -156,26 +167,7 @@ AppUI <- function(){
       )
     }
 
-  # .GlobalEnv$app$ui$update <- function(){
-  #
-  #   activeFile <- rstudioapi::getSourceEditorContext()
-  #   rstudioapi::documentSave(id=activeFile$id)
-  #
-  #   .GlobalEnv$drake$update()
-  #
-  #   flag_isUIrmd <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$shiny_app$ui)
-  #   assertthat::assert_that(
-  #     flag_isUIrmd,
-  #     msg="This is not a UI rmd"
-  #   )
-  #
-  #   updateUI_fromDrake()
-  #
-  # }
 
-
-
-  # .GlobalEnv$app <- app
 }
 
 # helpers -----------------------------------------------------------------

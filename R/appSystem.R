@@ -74,8 +74,9 @@ save_ui <- function(){
 
 }
 attachShinyDependencies <- function(){
-  shiny:::shinyDependencies() -> shinyDeps
-  shinyDeps[[2]] -> ultimateShinyDeps
+  # shiny:::shinyDependencies() -> shinyDeps
+  # shinyDeps[[2]] -> ultimateShinyDeps
+  shiny::fluidPage() %>% findDependencies() -> ultimateShinyDeps
 
   append(
     .GlobalEnv$app$dependencies, list(ultimateShinyDeps)
@@ -94,13 +95,29 @@ resolveAppDependencies <- function(){
   if(flag_hasIndividualDependencies)  get_individualDependencies(planType)
 
   if(planType=="ui"){
-    get_appDependenciesFromUIRmd()
+    if(.GlobalEnv$app$yaml$dependencies!="shiny") get_appDependenciesFromUIRmd()
 
-    attachShinyDependencies()
+    get_appDependenciesFrom_ui_object()
+    # attachShinyDependencies()
   }
 
 }
 
+get_appDependenciesFrom_ui_object <- function(){
+  .GlobalEnv$drake$loadTarget$ui()
+  htmltools::findDependencies(ui) -> uiDeps
+
+  currentDeps <- .GlobalEnv[[.GlobalEnv$app$yaml$dependencies]]
+
+  newDeps <-
+    append(
+      list(uiDeps), currentDeps
+    )
+
+  .GlobalEnv[[.GlobalEnv$app$yaml$dependencies]] <- newDeps
+  .GlobalEnv$app$yaml$dependencies <- newDeps
+
+}
 get_appDependenciesFromUIRmd <- function(){
   .GlobalEnv$drake$loadTarget[[
     .GlobalEnv$app$yaml$dependencies
@@ -230,4 +247,51 @@ check_yaml <- function(appSystem){
   ) -> appSystem$yamlContent
 
   return(appSystem)
+}
+attachDependencies2UIandSave2www <- function(){
+  .GlobalEnv$drake$loadTarget$ui()
+
+  uiDependencies <- htmltools::findDependencies(ui)
+
+  shinyDeps <- htmltools::htmlDependency(
+    name="shiny",
+    version="1.0.0",
+    src=c(href="shared"),
+    script="shiny.min.js",
+    stylesheet = "shiny.min.css"
+  )
+  econR::html_dependencies() -> econRdeps
+
+  tagList(
+    econRdeps$jquery(),
+    shinyDeps, ui
+  ) -> uiNew
+
+  htmltools::save_html(
+    uiNew,
+    file= .GlobalEnv$app$appPath %//% "www/index.html")
+
+
+}
+
+create_appR <- function(){
+  rlines <-
+    xfun::read_utf8(
+      .GlobalEnv$app$appPath %//% "server.R"
+    )
+
+  rlines %>%
+    c(
+      "
+      shinyApp(
+  ui=shiny::htmlTemplate('www/index.html'),
+  server
+)
+"
+    ) -> appLines
+
+xfun::write_utf8(
+  styler::style_text(appLines),
+  .GlobalEnv$app$appPath %//% "app.R"
+)
 }
