@@ -251,6 +251,12 @@ check_yaml <- function(appSystem){
 attachDependencies2UIandSave2www <- function(){
   .GlobalEnv$drake$loadTarget$ui()
 
+  if(!is.null(.GlobalEnv$app$ui$dependencies)){
+    attachDependencies(
+      ui, .GlobalEnv$app$ui$dependencies,
+      append=T
+    ) -> ui
+  }
   uiDependencies <- htmltools::findDependencies(ui)
 
   shinyDeps <- htmltools::htmlDependency(
@@ -264,7 +270,8 @@ attachDependencies2UIandSave2www <- function(){
 
   tagList(
     econRdeps$jquery(),
-    shinyDeps, ui
+    shinyDeps,
+    ui
   ) -> uiNew
 
   htmltools::save_html(
@@ -295,3 +302,11 @@ xfun::write_utf8(
   .GlobalEnv$app$appPath %//% "app.R"
 )
 }
+attach_UIfrontmatterDependencies <- function(){
+  dependenciesName <- .GlobalEnv$drake$activeRmd$frontmatter$dependencies
+  if(!is.null(dependenciesName)) {
+    .GlobalEnv$drake$loadTarget[[dependenciesName]]()
+    .GlobalEnv$app$ui$dependencies <- .GlobalEnv[[dependenciesName]]
+  }
+}
+

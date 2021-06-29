@@ -23,6 +23,7 @@ initiate_app <- function(){
     rmdType,
     "server"={AppServer()},
     "ui"={
+      attach_UIfrontmatterDependencies()
       AppUI()
       attachDependencies2UIandSave2www()
       flag_serverRexists <-
@@ -139,7 +140,7 @@ AppUI <- function(){
   drake <- .GlobalEnv$drake
 
 
-  econR:::saveUIRds(.GlobalEnv$app) -> .GlobalEnv$app
+  # econR:::saveUIRds(.GlobalEnv$app) -> .GlobalEnv$app
 
   # create browsable
   .GlobalEnv$app$ui$browsable <-
@@ -149,7 +150,7 @@ AppUI <- function(){
     .GlobalEnv$app$ui$browsable(ui)
   }
 
-  save_ui()
+  # save_ui()
 
   .GlobalEnv$app$ui$browse_ui <- function(reload=T){
     .GlobalEnv$app$ui$browsable(ui, reload)
