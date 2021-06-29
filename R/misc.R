@@ -29,6 +29,10 @@
   if(!flag_file){
     if(!dir.exists(newpath)) dir.create(newpath, recursive = T)
   }
+  if(flag_file){
+    basedir <- dirname(newpath)
+    if(!dir.exists(basedir)) dir.create(basedir, recursive = T)
+  }
   return(newpath)
 }
 
