@@ -1,5 +1,11 @@
 ---
 drake_cache: ".ui"
+dependencies: "dependencies"
+output:
+  html_tag:
+    filename: "index.html"
+    dirpath: "`r library(econR); . %//% 'docs'`"
+    object: "ui"
 ---
 
 
@@ -8,11 +14,27 @@ library(dplyr)
 library(shiny)
 library(htmltools)
 library(econR)
-.GlobalEnv$web <- econR::Web()
-web$foldername="www" # output folder name
-web$html_filename <- "index.html"
 
 ```
+
+```{r dependencies}
+dependencies <- {
+  myown_deps <- htmltools::htmlDependency(
+      name="myown",
+      version="1.0.0",
+      src=c(file= . %//% "assets"),
+      script = "js/myscript.js",
+      stylesheet="css/mystyle.css"
+    )
+  econR_deps <- econR::html_dependencies()
+  tagList(
+    econR_deps$jquery(),
+    econR_deps$materialise(),
+    myown_deps
+  )
+}
+```
+
 
 ## =======================
 
@@ -61,12 +83,6 @@ ui <- tags$body(
 
 ## =======================
 
-## Save
-
-```{r save_ui}
-.root <- rprojroot::is_rstudio_project$make_fix_file()
-saveRDS(ui, file=file.path(.root(),"ui.RDS"))
-```
 
 ## Browse
 

@@ -202,3 +202,18 @@ githublink_download_open <- function(){
   )
   file.edit(tempdir() %//% filename)
 }
+#' Initiate a Rproj based on current Rmd directory
+#'
+#' @return
+#' @export
+#'
+#' @examples none
+initiateProjectAtCurrentRmd <- function(){
+  rstudioapi::getSourceEditorContext() -> sourceRmd
+  rstudioapi::initializeProject(
+    dirname(sourceRmd$path)
+  )
+  rstudioapi::openProject(
+    dirname(sourceRmd$path)
+  )
+}

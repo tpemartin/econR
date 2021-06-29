@@ -26,14 +26,19 @@ initiate_app <- function(){
       attach_UIfrontmatterDependencies()
       AppUI()
       attachDependencies2UIandSave2www()
-      flag_serverRexists <-
-        file.exists(
-          .GlobalEnv$app$appPath %//% "server.R"
-        )
-      if(flag_serverRexists) create_appR()
       },
     {stop("This is neither a server.Rmd nor ui.Rmd file")}
   )
+  flag_serverRexists <-
+    file.exists(
+      .GlobalEnv$app$appPath %//% "server.R"
+    )
+  flag_wwwFolderExists <-
+    file.exists(
+      file.path(
+        .GlobalEnv$app$appPath, "www/index.html"
+      ))
+  if(flag_serverRexists && flag_wwwFolderExists) create_appR()
 
   create_appProject()
 

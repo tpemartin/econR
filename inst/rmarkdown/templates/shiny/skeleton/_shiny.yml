@@ -1,0 +1,3 @@
+dependencies: 'shiny' # shiny or dependencies
+appPath: "`r library(econR); . %//% 'app'`"
+supporting_dir: "`r library(econR); . %//% 'support'`"
