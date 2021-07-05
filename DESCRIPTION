@@ -14,10 +14,16 @@ Imports:
     bookdown,
     clipr,
     dplyr,
+    drake,
     htmltools,
     htmlwidgets,
+    knitr,
+    promises,
+    rlang,
+    rmarkdown,
     rprojroot,
     servr,
+    shiny,
     stringr
 Depends: 
     R (>= 2.10)

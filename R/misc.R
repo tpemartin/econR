@@ -1,3 +1,20 @@
+#' Generate saving function for list/env attaching
+#'
+#' @param objectname A character.
+#'
+#' @return
+#' @export
+#'
+#' @examples None
+generate_saveFunction <- function(objectname){
+  rdsfilename <- paste0(objectname, ".Rds")
+  function(){
+    saveRDS(
+      .GlobalEnv[[objectname]],
+      file= . %//% rdsfilename
+    )
+  }
+}
 #' build file.path
 #'
 #' @param x a path
