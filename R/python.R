@@ -5,59 +5,33 @@
 #'
 #' @examples None
 extractPy <- function(){
-  rmd <- new.env()
-  rmd$activeRmd <- list()
-  rstudioapi::getSourceEditorContext() -> content
+  assertthat::assert_that(
+    require(rmd2drake),
+    msg="Please remotes::install_github('tpemartin/rmd2drake')")
 
-  # rmd$activeRmd$filenames <- .activeFile
-  rmd$activeRmd$filenames <- content$path
-  rmd$activeRmd$lines <-
-    xfun::read_utf8(rmd$activeRmd$filenames)
+  .GlobalEnv$drake <- rmd2drake:::Drake()
+  require(dplyr)
+  drake$activeRmd$codeChunkTable$engine_label_option %>%
+    stringr::str_which("^py") %>%
+    drake$activeRmd$codeChunkTable[., ] -> pyTable
 
-  stringr::str_which(rmd$activeRmd$lines, "^```") -> whichStartWith3ticks
-  stringr::str_detect(rmd$activeRmd$lines[whichStartWith3ticks], "^```\\{python") -> pick_pythonStart
-  stringr::str_detect(rmd$activeRmd$lines[whichStartWith3ticks], "purl\\s*=\\s*F", negate=T) -> pick_noPurlF
-  index_pythonStart <- which(pick_pythonStart & pick_noPurlF)
-  index_pythonEnd <- index_pythonStart+1
-  data.frame(
-    start=whichStartWith3ticks[index_pythonStart],
-    end=whichStartWith3ticks[index_pythonEnd]
-  ) -> codeTable
-
+  # .x=1
   purrr::map(
-    1:nrow(codeTable),
+    seq_along(pyTable$start),
     ~{
-      start = codeTable$start[[.x]]+1
-      end = codeTable$end[[.x]]-1
-      rmd$activeRmd$lines[start:end]
+      startPosition <- pyTable$start[[.x]]+1
+      endPosition <- pyTable$end[[.x]]-1
+      startPosition:endPosition
     }
-  ) -> list_pyLines
-
-  .root <- rprojroot::is_rstudio_project$make_fix_file()
-  purlfolder <-
-    file.path(
-      .root(),"purl"
+  ) %>%
+    unlist() -> whichArePyCodes
+  stringr::str_replace(
+    drake$activeRmd$filenames,
+    "\\.[Rr][Mm][Dd]$",
+    ".py") -> pyfilepath
+  c(
+    drake$activeRmd$lines[whichArePyCodes], "") %>%
+    xfun::write_utf8(
+      con = pyfilepath
     )
-
-  # create purl folder
-  if(!dir.exists(purlfolder)) dir.create(purlfolder)
-
-  scriptfilepath <-
-    file.path(
-      purlfolder,
-      basename(stringr::str_replace(
-        content$path,
-        "\\.[Rr][Mm][Dd]$",
-        ".py"
-      ))
-    )
-
-  xfun::write_utf8(
-    unlist(list_pyLines),
-    con=scriptfilepath
-  )
-  message(
-    scriptfilepath
-  )
-
 }
