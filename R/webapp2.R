@@ -79,7 +79,7 @@ Web2 <- function(){
   web$translate_HTML_fromClipboard <- translate_HTML_fromClipboard(web)
 
 
-
+   web$merge <- web_merge
 
   # web$translate_js_chunk <- web_translateJsChunk2RChunk(web)
   web$update_dependencies <- update_css_js(web)
