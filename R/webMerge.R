@@ -1,7 +1,7 @@
 web_merge <- function(){
   rmdfilepath <- .GlobalEnv$web$rmdfilename
   rmdfolderpath <- dirname(rmdfilepath)
-  webyml <- list.files(rmdfolderpath, pattern="\\.yml$", full.names = T)
+  webyml <- list.files(rmdfolderpath, pattern="_web.yml", full.names = T)
   if(file.exists(webyml)){
     yaml::read_yaml(webyml) -> webyml
     webyml$rmdfiles |>
@@ -35,14 +35,14 @@ get_mergedRmdlines <- function(rmd2merge, webyml){
     list_extracted_merge_target
 
   list_extracted_merge_target |>
-    get_uniqueMergeFChunks() -> list_uniqueMergeF
+    get_uniqueShareTChunks() -> list_uniqueShareT
 
   list_extracted_merge_target |>
     purrr::map(
       ~.x$targets
     ) -> list_allTargets
 
-  list_uniqueMergeF |>
+  list_uniqueShareT |>
     purrr::map_chr(
       ~paste(c(.x, ""), collapse = "\n")
     ) -> content_mergerFchunks
@@ -86,13 +86,13 @@ get_mergedRmdlines <- function(rmd2merge, webyml){
 }
 
 
-get_uniqueMergeFChunks <- function(list_extracted_merge_target){
+get_uniqueShareTChunks <- function(list_extracted_merge_target){
   list_extracted_merge_target |>
-    purrr::detect(function(.x){ length(.x$mergeF) !=0} ) ->
-    firstHasMergeF
+    purrr::detect(function(.x){ length(.x$shareT) !=0} ) ->
+    firstHasShareT
 
-  list_uniqueMergeF <- firstHasMergeF$mergeF
-  return(list_uniqueMergeF)
+  list_uniqueShareT <- firstHasShareT$shareT
+  return(list_uniqueShareT)
 }
 extract_merge_target_chunks <- function(rmd2mergeX){
   # .x =2
@@ -102,14 +102,33 @@ extract_merge_target_chunks <- function(rmd2mergeX){
     rmd2drake:::drake_get_rmdlinesTable(rmdlines) ->
     rmdlinesTableX
 
-    pick_targetChunks <- pick_whichHasTargets(rmdlinesTableX)
-    pick_mergeF <- pick_whichHasMergeFalse(rmdlinesTableX)
+    pick_drakeT <- pick_whichNotDrakeF(rmdlinesTableX)
+    pick_targetChunks <- {
+      pick_whichHasTargets(rmdlinesTableX) &
+        pick_drakeT
+    }
+    pick_shareT <- {
+      pick_whichHasShareTrue(rmdlinesTableX) &
+        pick_drakeT
+    }
 
-    get_listMergeFalseCodeChunks(pick_mergeF, rmdlines, rmdlinesTableX) -> list_mergeFchunks
-    get_listTargetChunks(pick_targetChunks, pick_mergeF, rmdlines, rmdlinesTableX) -> list_targetChunks
+    get_listShareTrueCodeChunks(pick_shareT, rmdlines, rmdlinesTableX) -> list_shareTchunks
+    get_listTargetChunks(pick_targetChunks, pick_shareT, rmdlines, rmdlinesTableX) -> list_targetChunks
   list(
-    mergeF = list_mergeFchunks,
+    shareT = list_shareTchunks,
     targets = list_targetChunks
+  )
+}
+pick_whichNotDrakeF <- function(rmdlinesTableX){
+  purrr::map_lgl(
+    rmdlinesTableX$engine_label_option,
+    ~{
+      # .x = rmdlinesTableX$engine_label_option[[7]]
+      .x <- stringr::str_remove_all(.x, "\\s")
+      all(stringr::str_detect(
+        .x,
+        "drake\\=F", negate = T))
+    }
   )
 }
 pick_whichHasTargets <- function(rmdlinesTableX){
@@ -117,27 +136,27 @@ pick_whichHasTargets <- function(rmdlinesTableX){
     purrr::map_lgl(
       ~{
         any(
-          .x != "r" & stringr::str_detect(.x, "=", negate = T) & stringr::str_detect(.x, "drake\\s*=\\s*F", negate=T)
+          .x != "\\br\\b" & stringr::str_detect(.x, "=", negate = T)
         )
       }
     )
 }
-pick_whichHasMergeFalse <- function(rmdlinesTableX){
+pick_whichHasShareTrue <- function(rmdlinesTableX){
   rmdlinesTableX$engine_label_option |>
     purrr::map_lgl(
       ~{
         any(
-          .x != "r" & stringr::str_detect(.x, "merge\\s*=\\s*F") & stringr::str_detect(.x, "drake\\s*=\\s*F", negate=T)
+          .x != "r" & stringr::str_detect(.x, "share\\s*=\\s*T")
         )
       }
     )
 }
-get_listMergeFalseCodeChunks <- function(pick_mergeF, rmdlines, rmdlinesTableX){
+get_listShareTrueCodeChunks <- function(pick_shareT, rmdlines, rmdlinesTableX){
   output <- list()
-  which_mergeF <- which(pick_mergeF)
-  if(length(which_mergeF)!=0){
+  which_shareT <- which(pick_shareT)
+  if(length(which_shareT)!=0){
     purrr::map(
-      which_mergeF,
+      which_shareT,
       ~{
         with(rmdlinesTableX, start[[.x]]:end[[.x]]) -> lineRange
         rmdlines[lineRange]
@@ -147,9 +166,9 @@ get_listMergeFalseCodeChunks <- function(pick_mergeF, rmdlines, rmdlinesTableX){
   return(output)
 }
 
-get_listTargetChunks <- function(pick_targetChunks, pick_mergeF, rmdlines, rmdlinesTableX){
+get_listTargetChunks <- function(pick_targetChunks, pick_shareT, rmdlines, rmdlinesTableX){
   output <- list()
-  which_target <- which(pick_targetChunks & !pick_mergeF)
+  which_target <- which(pick_targetChunks & !pick_shareT)
   if(length(which_target)!=0){
     purrr::map(
       which_target,
