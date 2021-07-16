@@ -11,11 +11,11 @@ create_appProject <- function(appSystem){
       rstudioapi::initializeProject(
         .GlobalEnv$app$appPath
       )
-      .GlobalEnv$app$launchProject <- function(){
-        rstudioapi::openProject(
-          .GlobalEnv$app$appPath, T
-        )
-      }
+    }
+    .GlobalEnv$app$launchProject <- function(){
+      rstudioapi::openProject(
+        .GlobalEnv$app$appPath, T
+      )
     }
 
 }
@@ -225,7 +225,7 @@ get_currentRmd <- function(){
   return(appSystem)
 }
 check_yaml <- function(appSystem){
-  appSystem$folder %//% "_shiny.yml" ->
+  appSystem %>% get_ymlfilepath() ->
     appSystem$yaml
   flag_yamlExists <-
     file.exists(
@@ -249,7 +249,11 @@ check_yaml <- function(appSystem){
   return(appSystem)
 }
 attachDependencies2UIandSave2www <- function(){
-  .GlobalEnv$drake$loadTarget$ui()
+  # .GlobalEnv$drake$loadTarget$ui()
+
+  outputTag <- .GlobalEnv$app$ui$outputTag
+  .GlobalEnv$drake$loadTarget[[outputTag]]()
+  .GlobalEnv$ui <- .GlobalEnv[[outputTag]]
 
   if(!is.null(.GlobalEnv$app$ui$dependencies)){
     attachDependencies(
@@ -308,5 +312,21 @@ attach_UIfrontmatterDependencies <- function(){
     .GlobalEnv$drake$loadTarget[[dependenciesName]]()
     .GlobalEnv$app$ui$dependencies <- .GlobalEnv[[dependenciesName]]
   }
+  .GlobalEnv$app$ui$outputTag <-
+    .GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$object
 }
+get_ymlfilepath <- function(appSystem){
+  appSystem$folder %//% "_shiny.yml" -> yml_all
+  appSystem$currentRmd$path |> stringr::str_replace("/(server|ui)_", "/_shiny_") |>
+    stringr::str_replace("\\.[Rr][Mm][Dd]",".yml") -> yml_x
+  flag_ymlX_exists <- file.exists(yml_x)
+
+  if(flag_ymlX_exists){ # priority
+    return(yml_x)
+  } else
+  {
+    return(yml_all)
+  }
+}
+
 
