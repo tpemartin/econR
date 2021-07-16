@@ -45,7 +45,7 @@ create_serverScript <- function(){
 
   drakePlan = .GlobalEnv$drake$.planEnvironment[[planname]]
   #
-  generate_reactExpressionsFromDrakePlan(drakePlan) -> reactExprs
+  generate_reactExpressionsFromDrakePlan2(drakePlan) -> reactExprs
   purrr::map_chr(
     reactExprs,
     ~{
@@ -63,7 +63,7 @@ create_serverScript <- function(){
       "# makecondition -----------\n",
       makeconditionServer, "\n",
       "# server --------\n",
-      "server <- function(input, output){",
+      "server <- function(input, output, session){",
       reactScripts,
       "}"
     )
@@ -114,7 +114,7 @@ create_reactiveScript <- function(){
 
   drakePlan = .GlobalEnv$drake$.planEnvironment[[planname]]
 
-  generate_reactExpressionsFromDrakePlan(drakePlan) -> reactExprs
+  generate_reactExpressionsFromDrakePlan2(drakePlan) -> reactExprs
   purrr::map_chr(
     reactExprs,
     ~{
@@ -328,4 +328,138 @@ removeTargetAssignment <- function(targetX, commandX_deparse) {
         )
     }
   return(commandX_deparse)
+}
+
+# helper  generate_reactExpressionsFromDrakePlan2-----------------------------------------------------------------
+
+
+generate_reactExpressionsFromDrakePlan2 <- function(drakePlan){
+  drakePlan_reactiveDivided <-
+    reactiveDivide_drakePlan(drakePlan)
+
+  drakePlan_reactiveFalse <-
+    drakePlan_reactiveDivided$reactiveFalse
+
+  list_exprs_reactiveFalse <-
+    generate_reactExpressionsFromDrakePlan_reactiveFalse(drakePlan_reactiveFalse = drakePlan_reactiveFalse)
+
+  list_exprs_reactiveTrue <-
+    generate_reactExpressionsFromDrakePlan_reactiveTrue(drakePlan, drakePlan_reactiveDivided)
+
+  reactExprs <- append(list_exprs_reactiveFalse,
+    list_exprs_reactiveTrue)
+
+  return(reactExprs)
+}
+generate_reactExpressionsFromDrakePlan_reactiveFalse <- function(drakePlan_reactiveFalse){
+  drakePlan <- drakePlan_reactiveFalse
+  # inputTargets <- extract_makeconditionInputs()
+  # targets <- c(
+  #   inputTargets,
+  #   drakePlan$target)
+  targets <- drakePlan$target
+  whichHasValidTargets <- stringr::str_which(targets, "^render_", negate = T)
+  whichHasRender <- stringr::str_which(
+    targets, "^render_"
+  )
+  valid <- list(
+    targets=targets[whichHasValidTargets],
+    drakePlan=drakePlan[whichHasValidTargets,]
+  )
+  render <- list(
+    targets=targets[whichHasRender],
+    command=drakePlan$command[whichHasRender]
+  )
+
+  render <- get_renderFunctionName(render)
+  conductorTargets <-
+    stringr::str_subset(
+      valid$targets, "^(input|output)_", negate=T
+    )
+
+  list_exprs <- vector("list", length(valid$targets))
+  for(.i in seq_along(valid$targets)){
+
+    list_exprs[[.i]] <- convert2reactExpression(valid$targets[[.i]], valid$drakePlan[.i,], render, conductorTargets)
+  }
+  return(list_exprs)
+}
+
+generate_reactExpressionsFromDrakePlan_reactiveTrue <- function(drakenPlan, drakePlan_reactiveDivided){
+  drakePlan_reactiveFalse <- drakePlan_reactiveDivided$reactiveFalse
+  drakePlan_reactiveTrue <- drakePlan_reactiveDivided$reactiveTrue
+
+  validTargets <- drakePlan_reactiveFalse$target
+  conductorTargets <-
+    stringr::str_subset(
+      validTargets, "^(input|output|render)_", negate=T
+    )
+
+  commands_reactiveTrue <- drakePlan_reactiveTrue$command
+
+  commands_reactiveTrue <- addParenthesis2conductors(commands_reactiveTrue, conductorTargets)
+
+  return(commands_reactiveTrue)
+}
+
+addParenthesis2conductors <- function(commands_react,conductorTargets){
+  list_exprs <- commands_react
+  if(length(conductorTargets) !=0){
+    for(.x in seq_along(commands_react)){
+      commandX_react = commands_react[[.x]]
+      # add () to conductor in command
+
+      list_exprs[[.x]] <-
+        addReactParenthesis(conductorTargets, commandX_react)
+    }
+  }
+  return(list_exprs)
+}
+
+reactiveDivide_drakePlan <- function(drakePlan){
+  whichHasReactiveT <- get_whichHasReactiveT()
+
+  pick_reactiveT <- rep(F, length(drakePlan$target))
+
+  if(length(whichHasReactiveT)!=0){
+
+    rmdlinesTable_reactiveT <- .GlobalEnv$drake$activeRmd$codeChunkTable[whichHasReactiveT, ]
+
+    rmdlinesTable_reactiveT$engine_label_option %>%
+      get_targetsFromEngine_label_option() ->
+      targets_reactiveT
+
+    pick_reactiveT <- drakePlan$target %in% targets_reactiveT
+  }
+  whichPlanTargetReactiveTrue <- which(pick_reactiveT)
+  whichPlanTargetReadtiveFalse <- which(!pick_reactiveT)
+
+  list(
+    reactiveTrue = drakePlan[whichPlanTargetReactiveTrue, ],
+    reactiveFalse = drakePlan[whichPlanTargetReadtiveFalse, ]
+  ) -> drakePlan_reactiveDivided
+  return(drakePlan_reactiveDivided)
+}
+get_targetsFromEngine_label_option <- function(engine_label_option){
+  engine_label_option %>%
+    purrr::map_chr(
+      ~{
+        # .x = rmdlinesTable_reactiveT$engine_label_option[[1]]
+        which(!(.x %in% c("r","python"))  & stringr::str_detect(.x, "=", negate=T))-> whichIsTargetName
+        .x[[whichIsTargetName]]
+      }
+    ) -> targetnames
+  return(targetnames)
+}
+get_whichHasReactiveT <- function(){
+  .GlobalEnv$drake$activeRmd$codeChunkTable$engine_label_option %>%
+    purrr::map_lgl(
+      ~{
+        stringr::str_replace_all(.x, "\\s","") -> .xNoSpace
+        any(stringr::str_which(.xNoSpace, "reactive=T")) -> flag_hasReactiveT
+        flag_hasReactiveT
+      }
+    ) %>%
+    which() -> whichHasReactiveT
+  return(whichHasReactiveT)
 }
