@@ -225,7 +225,7 @@ get_currentRmd <- function(){
   return(appSystem)
 }
 check_yaml <- function(appSystem){
-  appSystem %>% get_ymlfilepath() ->
+   get_ymlfilepath(appSystem) ->
     appSystem$yaml
   flag_yamlExists <-
     file.exists(

@@ -1,5 +1,5 @@
 initiate_app <- function(){
-  library(econR)
+  # library(econR)
   library(dplyr)
   appSystem <- get_currentRmd()
   appSystem <- check_yaml(appSystem)

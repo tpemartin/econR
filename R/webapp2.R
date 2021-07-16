@@ -206,11 +206,11 @@ parse_frontmatter <- function(string){
       string, "(?<=`r ).*(?=`)"
     )
     string_parsed <- rlang::parse_exprs(string_expr)
-    eval(string_parsed[[1]])
-    eval(string_parsed[[2]])
+    # eval(string_parsed[[1]])
+    # eval(string_parsed[[2]])
     purrr::map(
       string_parsed,
-      eval
+      eval, envir=rlang::current_env()
     ) -> list_returns
     return(list_returns[[length(list_returns)]])
   } else {

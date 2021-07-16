@@ -33,11 +33,17 @@ generate_saveFunction <- function(objectname){
     }) -> flag_notCharacter
   if(flag_notCharacter){
     sym_x <- rlang::ensym(x)
-    if(sym_x == as.name(".")){
+    if(deparse(sym_x)==".r" || deparse(sym_x) == "."){
       .root <- rprojroot::is_rstudio_project$make_fix_file()
       x <- .root()
-    }
+    } else {
+      if(sym_x == as.name(".")){
+        .root <- rprojroot::is_rstudio_project$make_fix_file()
+        x <- .root()
+      }
   }
+}
+
   newpath <- file.path(x,y)
   flag_file <-
     stringr::str_detect(
