@@ -74,9 +74,14 @@ Web2 <- function(){
 
   # web$browse <- browse_generator(web)
 
-  web$translate_HTML2rTags <- convertHTML2RTags
+  web$translate_HTML2rTags <- function(string, prefix=T){
+    html2R(string, prefix=prefix)
+  }
 
-  web$translate_HTML_fromClipboard <- translate_HTML_fromClipboard(web)
+  web$translate_HTML_fromClipboard <- function(prefix=T){
+    html2R(clipr::read_clip(), prefix=prefix) -> translatedTags
+    clipr::write_clip(translatedTags)
+  }
 
 
    web$merge <- web_merge
