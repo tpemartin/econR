@@ -38,7 +38,7 @@ generate_saveFunction <- function(objectname){
       .root <- rprojroot::is_rstudio_project$make_fix_file()
       x <- .root()
     } else {
-      x <- eval(sym_x)
+      x <- eval(sym_x, envir = rlang::caller_env())
     }
   }
   # tryCatch({
@@ -232,7 +232,6 @@ githublink_download_open <- function(){
     stringr::str_detect(link, "^http"),
     msg=paste(link, " is no a valid url.")
   )
-  require(econR)
   stringr::str_extract_all(
     link, "(?<=https://github.com/).+(?=/blob)|(?<=blob/)[^#?&]*"
   ) -> linkInfo
