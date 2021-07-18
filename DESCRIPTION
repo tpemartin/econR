@@ -1,7 +1,7 @@
 Package: econR
 Type: Package
 Title: Complementary package for courses in NTPU Econ department
-Version: 1.0.0
+Version: 1.1.0
 Author: Martin Lin
 Maintainer: Martin Lin <mtlin@gm.ntpu.edu.tw>
 Description: More about what it does (maybe more than one line)

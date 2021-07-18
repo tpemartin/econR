@@ -46,8 +46,10 @@ initiate_app <- function(){
   # rstudioapi::initializeProject(.GlobalEnv$app$appPath)
   # rstudioapi::openProject(.GlobalEnv$app$appPath,T)
 
+  .r <- rprojroot::is_rstudio_project$make_fix_file()
+  appymlfilepath <- list.files(.r(), pattern="_shiny.yml", full.names = T)
 
-
+  .GlobalEnv$app$merge <- app_merge(appymlfilepath)
 }
 
 create_serverFunction2 <- function(){

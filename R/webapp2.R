@@ -5,10 +5,11 @@
 #' @export
 #'
 #' @examples None
-Web2 <- function(){
+Web2 <- function() {
   assertthat::assert_that(
-    exists("drake", envir=.GlobalEnv),
-    msg="There is no drake in global environment. Please initiate drake.")
+    exists("drake", envir = .GlobalEnv),
+    msg = "There is no drake in global environment. Please initiate drake."
+  )
 
   web <- new.env()
   # web$convertHTML2RTags <- convertHTML2RTags
@@ -20,35 +21,42 @@ Web2 <- function(){
   flag_nofrontmatterDependencies <-
     is.null(drake$activeRmd$frontmatter$dependencies)
   assertthat::assert_that(!flag_nofrontmatterDependencies,
-    msg="no dependencies: 'dep_object_name' set in frontmatter.\n web$browsable will have no default dependency.")
+    msg = "no dependencies: 'dep_object_name' set in frontmatter.\n web$browsable will have no default dependency."
+  )
 
-  flag_hasDependencyRscript <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath)
-
-  if(flag_hasDependencyRscript){
-    dependencyRscriptFilePath <-.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath
-
-    dependencyRscriptFilePath <- parse_frontmatter(dependencyRscriptFilePath)
-    source(dependencyRscriptFilePath, local = .GlobalEnv)
+  # Decide where to source dependencies object to the global environment
+  if (!is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath)) {
+    .GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath %>%
+      parse_frontmatter() %>%
+      source(local = .GlobalEnv)
+  } else
+  if (!is.null(.GlobalEnv$drake$activeRmd$frontmatter$dependencyRscriptFilePath)) {
+    .GlobalEnv$drake$activeRmd$frontmatter$dependencyRscriptFilePath %>%
+      parse_frontmatter() %>%
+      source(local = .GlobalEnv)
   } else {
     drake$loadTarget[[drake$activeRmd$frontmatter$dependencies]]()
   }
   web$dependencies <-
     .GlobalEnv[[drake$activeRmd$frontmatter$dependencies]]
-  web$browsable <- function(ui, reload=T){
-    tryCatch({
-      sym_ui <- rlang::ensym(ui)
-      if(
-        is.null(.GlobalEnv[[as.character(sym_ui)]]) || reload
-      ){
-        .GlobalEnv$drake$loadTarget[[as.character(sym_ui)]]()
-        ui_element = .GlobalEnv[[as.character(sym_ui)]]
-      }
-      ui_element
-    },
-      error=function(e){
-        ui_element=ui
+
+  web$browsable <- function(ui, reload = T) {
+    tryCatch(
+      {
+        sym_ui <- rlang::ensym(ui)
+        if (
+          is.null(.GlobalEnv[[as.character(sym_ui)]]) || reload
+        ) {
+          .GlobalEnv$drake$loadTarget[[as.character(sym_ui)]]()
+          ui_element <- .GlobalEnv[[as.character(sym_ui)]]
+        }
         ui_element
-      }) -> ui_element
+      },
+      error = function(e) {
+        ui_element <- ui
+        ui_element
+      }
+    ) -> ui_element
 
 
     viewer_browsable(
@@ -57,54 +65,11 @@ Web2 <- function(){
         web$dependencies
       )
     )
-
   }
-
-  # # attach htmlDependencies and browsable
-  # if(!flag_nofrontmatterDependencies){
-  #   # throw dependencies to .GlobalEnv
-  #     drake$loadTarget[[drake$activeRmd$frontmatter$dependencies]]()
-  #   web$dependencies <-
-  #     .GlobalEnv[[drake$activeRmd$frontmatter$dependencies]]
-  #
-  #
-  #   web$browsable <- function(ui, reload=T){
-  #     tryCatch({
-  #       sym_ui <- rlang::ensym(ui)
-  #       if(
-  #         is.null(.GlobalEnv[[as.character(sym_ui)]]) || reload
-  #       ){
-  #         .GlobalEnv$drake$loadTarget[[as.character(sym_ui)]]()
-  #         ui_element = .GlobalEnv[[as.character(sym_ui)]]
-  #       }
-  #       ui_element
-  #     },
-  #       error=function(e){
-  #         ui_element=ui
-  #         ui_element
-  #       }) -> ui_element
-  #
-  #
-  #     viewer_browsable(
-  #       htmltools::attachDependencies(
-  #         ui_element,
-  #         web$dependencies
-  #       )
-  #     )
-  #
-  #   }
-  #
-  # }
-
-  # assertthat::assert_that(
-  #   exists("drake", envir=.GlobalEnv),
-  #   msg="There is no drake in global environment. Please initiate drake."
-  # )
-
 
 
   flag_webpageOutputNeeded <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag)
-  if(flag_webpageOutputNeeded){
+  if (flag_webpageOutputNeeded) {
     attachMethod_getOutputFilepath(web) -> web
     attachMethodsRelated2outputfilepath2(web) -> web
   }
@@ -113,17 +78,17 @@ Web2 <- function(){
 
   # web$browse <- browse_generator(web)
 
-  web$translate_HTML2rTags <- function(string, prefix=T){
-    html2R(string, prefix=prefix)
+  web$translate_HTML2rTags <- function(string, prefix = T) {
+    html2R(string, prefix = prefix)
   }
 
-  web$translate_HTML_fromClipboard <- function(prefix=T){
-    html2R(clipr::read_clip(), prefix=prefix) -> translatedTags
+  web$translate_HTML_fromClipboard <- function(prefix = T) {
+    html2R(clipr::read_clip(), prefix = prefix) -> translatedTags
     clipr::write_clip(translatedTags)
   }
 
 
-   web$merge <- web_merge
+  web$merge <- web_merge
 
   # web$translate_js_chunk <- web_translateJsChunk2RChunk(web)
   web$update_dependencies <- update_css_js(web)
@@ -132,19 +97,17 @@ Web2 <- function(){
 
   update <- web_update(web)
 
-  web$update <- function(){
-
+  web$update <- function() {
     update()
     update_htmloutput()
   }
 
   update_hard <- web_update_hard(web)
 
-  web$update_hard <- function(){
-
+  web$update_hard <- function() {
     update_hard()
     update_htmloutput()
-    }
+  }
 
 
   web$assets <- list()
@@ -159,10 +122,10 @@ Web2 <- function(){
   # React
   web$react <-
     list(
-      create_script = function(){
+      create_script = function() {
         web$react$script <-
           create_reactiveScript()
-        web$react$clipboard <- function(){
+        web$react$clipboard <- function() {
           clipr::write_clip(
             web$react$script
           )
@@ -184,8 +147,9 @@ attachMethod_getOutputFilepath <- function(web){
 
   web$html_filename <- filename
 
+  output_filepath <- dirpath %//% filename
   web$output_filepath <- function(){
-    dirpath %//% filename
+    output_filepath
   }
 
   # load saving object and save
@@ -283,7 +247,7 @@ obtain_htmlOutputSetup <- function(){
 }
 
 parse_htmlTagSetup <- function(html_tagSetup){
-  purrr::map(html_tagSetup, econR:::parse_frontmatter) -> html_tagSetup
+  purrr::map(html_tagSetup, parse_frontmatter) -> html_tagSetup
   return(html_tagSetup)
 }
 

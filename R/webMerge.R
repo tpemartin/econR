@@ -26,8 +26,7 @@ web_merge <- function(){
 
 
 # helpers -----------------------------------------------------------------
-
-get_mergedRmdlines <- function(rmd2merge, webyml){
+extractContentTargets <- function(rmd2merge){
   rmd2merge |>
     purrr::map(
       extract_merge_target_chunks
@@ -61,6 +60,16 @@ get_mergedRmdlines <- function(rmd2merge, webyml){
         contentTargetX), collapse = "\n\n") ->
       contentTargets[[.x]]
   }
+  return(
+    list(contentTargets=contentTargets,
+      content_mergerFchunks=content_mergerFchunks
+      ))
+}
+get_mergedRmdlines <- function(rmd2merge, webyml){
+  rmd2merge |>
+    extractContentTargets() -> list_contentTargets
+  contentTargets <- list_contentTargets$contentTargets
+  content_mergerFchunks <- list_contentTargets$content_mergerFchunks
 
   webyml$mergedRmd |>
     stringr::str_extract("[^\\.]+") -> cacheName
