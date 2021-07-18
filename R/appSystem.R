@@ -308,10 +308,13 @@ xfun::write_utf8(
 }
 attach_UIfrontmatterDependencies <- function(){
   dependenciesName <- .GlobalEnv$drake$activeRmd$frontmatter$dependencies
-  if(!is.null(dependenciesName)) {
-    .GlobalEnv$drake$loadTarget[[dependenciesName]]()
-    .GlobalEnv$app$ui$dependencies <- .GlobalEnv[[dependenciesName]]
+
+  {
+    generate_dependenciesInGlobalEnv()
+    .GlobalEnv$app$ui$dependencies <-
+      .GlobalEnv[[dependenciesName]]
   }
+
   .GlobalEnv$app$ui$outputTag <-
     .GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$object
 }
@@ -326,6 +329,23 @@ get_ymlfilepath <- function(appSystem){
   } else
   {
     return(yml_all)
+  }
+}
+generate_dependenciesInGlobalEnv <- function(){
+  flag_nofrontmatterDependencies <-
+    is.null(.GlobalEnv$drake$activeRmd$frontmatter$dependencies)
+  assertthat::assert_that(!flag_nofrontmatterDependencies,
+    msg="no dependencies: 'dep_object_name' set in frontmatter.\n web$browsable will have no default dependency.")
+
+  flag_hasDependencyRscript <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath)
+
+  if(flag_hasDependencyRscript){
+    dependencyRscriptFilePath <-.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath
+
+    dependencyRscriptFilePath <- econR:::parse_frontmatter(dependencyRscriptFilePath)
+    source(dependencyRscriptFilePath, local = .GlobalEnv)
+  } else {
+    .GlobalEnv$drake$loadTarget[[.GlobalEnv$drake$activeRmd$frontmatter$dependencies]]()
   }
 }
 

@@ -19,43 +19,82 @@ Web2 <- function(){
 
   flag_nofrontmatterDependencies <-
     is.null(drake$activeRmd$frontmatter$dependencies)
-  if(flag_nofrontmatterDependencies) warning("no dependencies: 'dep_object_name' set in frontmatter.\n web$browsable will have no default dependency.")
+  assertthat::assert_that(!flag_nofrontmatterDependencies,
+    msg="no dependencies: 'dep_object_name' set in frontmatter.\n web$browsable will have no default dependency.")
 
-  # attach htmlDependencies and browsable
-  if(!flag_nofrontmatterDependencies){
-    # throw dependencies to .GlobalEnv
-      drake$loadTarget[[drake$activeRmd$frontmatter$dependencies]]()
-    web$dependencies <-
-      .GlobalEnv[[drake$activeRmd$frontmatter$dependencies]]
+  flag_hasDependencyRscript <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath)
 
+  if(flag_hasDependencyRscript){
+    dependencyRscriptFilePath <-.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath
 
-    web$browsable <- function(ui, reload=T){
-      tryCatch({
-        sym_ui <- rlang::ensym(ui)
-        if(
-          is.null(.GlobalEnv[[as.character(sym_ui)]]) || reload
-        ){
-          .GlobalEnv$drake$loadTarget[[as.character(sym_ui)]]()
-          ui_element = .GlobalEnv[[as.character(sym_ui)]]
-        }
+    dependencyRscriptFilePath <- parse_frontmatter(dependencyRscriptFilePath)
+    source(dependencyRscriptFilePath, local = .GlobalEnv)
+  } else {
+    drake$loadTarget[[drake$activeRmd$frontmatter$dependencies]]()
+  }
+  web$dependencies <-
+    .GlobalEnv[[drake$activeRmd$frontmatter$dependencies]]
+  web$browsable <- function(ui, reload=T){
+    tryCatch({
+      sym_ui <- rlang::ensym(ui)
+      if(
+        is.null(.GlobalEnv[[as.character(sym_ui)]]) || reload
+      ){
+        .GlobalEnv$drake$loadTarget[[as.character(sym_ui)]]()
+        ui_element = .GlobalEnv[[as.character(sym_ui)]]
+      }
+      ui_element
+    },
+      error=function(e){
+        ui_element=ui
         ui_element
-      },
-        error=function(e){
-          ui_element=ui
-          ui_element
-        }) -> ui_element
+      }) -> ui_element
 
 
-      viewer_browsable(
-        htmltools::attachDependencies(
-          ui_element,
-          web$dependencies
-        )
+    viewer_browsable(
+      htmltools::attachDependencies(
+        ui_element,
+        web$dependencies
       )
-
-    }
+    )
 
   }
+
+  # # attach htmlDependencies and browsable
+  # if(!flag_nofrontmatterDependencies){
+  #   # throw dependencies to .GlobalEnv
+  #     drake$loadTarget[[drake$activeRmd$frontmatter$dependencies]]()
+  #   web$dependencies <-
+  #     .GlobalEnv[[drake$activeRmd$frontmatter$dependencies]]
+  #
+  #
+  #   web$browsable <- function(ui, reload=T){
+  #     tryCatch({
+  #       sym_ui <- rlang::ensym(ui)
+  #       if(
+  #         is.null(.GlobalEnv[[as.character(sym_ui)]]) || reload
+  #       ){
+  #         .GlobalEnv$drake$loadTarget[[as.character(sym_ui)]]()
+  #         ui_element = .GlobalEnv[[as.character(sym_ui)]]
+  #       }
+  #       ui_element
+  #     },
+  #       error=function(e){
+  #         ui_element=ui
+  #         ui_element
+  #       }) -> ui_element
+  #
+  #
+  #     viewer_browsable(
+  #       htmltools::attachDependencies(
+  #         ui_element,
+  #         web$dependencies
+  #       )
+  #     )
+  #
+  #   }
+  #
+  # }
 
   # assertthat::assert_that(
   #   exists("drake", envir=.GlobalEnv),
