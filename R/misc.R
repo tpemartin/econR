@@ -26,13 +26,14 @@ generate_saveFunction <- function(objectname){
 #' @examples x %//% y
 `%//%` <- function(x, y){
   tryCatch({
-    !is.character(x)
+    rlang::ensym(x)
   },
     error=function(e){
-      TRUE
-    }) -> flag_notCharacter
-  if(flag_notCharacter){
-    sym_x <- rlang::ensym(x)
+      x
+    }) -> x
+  flag_xIsCharacter <- is.character(x)
+  if(!flag_xIsCharacter){
+    sym_x <- x
     if(deparse(sym_x)==".r" || deparse(sym_x) == "."){
       .root <- rprojroot::is_rstudio_project$make_fix_file()
       x <- .root()
@@ -41,8 +42,30 @@ generate_saveFunction <- function(objectname){
         .root <- rprojroot::is_rstudio_project$make_fix_file()
         x <- .root()
       }
+    }
   }
-}
+  # tryCatch({
+  #   rlang::ensym(x)
+  # },
+  #   error=function(e){
+  #     TRUE
+  #   }) -> sym_x
+
+
+
+#
+#   if(flag_notCharacter){
+#
+#     if(deparse(sym_x)==".r" || deparse(sym_x) == "."){
+#       .root <- rprojroot::is_rstudio_project$make_fix_file()
+#       x <- .root()
+#     } else {
+#       if(sym_x == as.name(".")){
+#         .root <- rprojroot::is_rstudio_project$make_fix_file()
+#         x <- .root()
+#       }
+#   }
+# }
 
   newpath <- file.path(x,y)
   flag_file <-
