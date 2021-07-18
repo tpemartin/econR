@@ -38,10 +38,7 @@ generate_saveFunction <- function(objectname){
       .root <- rprojroot::is_rstudio_project$make_fix_file()
       x <- .root()
     } else {
-      if(sym_x == as.name(".")){
-        .root <- rprojroot::is_rstudio_project$make_fix_file()
-        x <- .root()
-      }
+      x <- eval(sym_x)
     }
   }
   # tryCatch({
