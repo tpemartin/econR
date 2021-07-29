@@ -133,11 +133,45 @@ Web2 <- function() {
       }
     )
 
+  web$move2destinationFolder <- function(destFolder){
+    move2destinationFolder(destFolder) -> newhtmlfilepath
+
+    # update output_filepath()
+    .GlobalEnv$web$output_filepath <- function(){
+      newhtmlfilepath
+    }
+
+    # update browse()
+    .GlobalEnv$web$browse <-
+      function(port=.GlobalEnv$web$port){
+        servr::daemon_stop()
+
+        servr::httw(
+          dir = .GlobalEnv$web$root,
+          port = port
+        ) -> x
+        x$url %>% stringr::str_replace(
+          "(?<=http://).*(?=:[0-8]{4})",
+          "localhost"
+        ) -> baseurlx
+        stringr::str_remove(
+          newhtmlfilepath,
+          web$root
+        ) -> endpoint
+        url2view <- paste0(baseurlx, endpoint)
+        rstudioapi::viewer(
+          url2view
+        )
+      }
+
+  }
+
   return(web)
 }
 attachMethod_getOutputFilepath <- function(web){
   drake <- .GlobalEnv$drake
   parse_frontmatter(drake$activeRmd$frontmatter$output$html_tag$dirpath) -> dirpath
+  web$root <- dirpath
   parse_frontmatter(
     drake$activeRmd$frontmatter$output$html_tag$filename
   ) -> filename
@@ -159,7 +193,7 @@ attachMethod_getOutputFilepath <- function(web){
   )
   drake$loadTarget[[objectname]]()
   htmltools::save_html(
-    htmltools::attachDependencies(
+    htmltools::tagList(
       .GlobalEnv[[objectname]],
       web$dependencies
       ),
@@ -268,4 +302,139 @@ update_htmloutput <- function(){
     # ),
     file=web$output_filepath()
   )
+}
+#' Convert lib path of a html file content to a path relative to project root
+#' @description After conversion, the original file will have all 'lib' converted to '/lib'
+#'
+#' @param htmlfilepath A character of absolute path
+#'
+#' @return
+#' @export
+#'
+#' @examples None
+convertLibpathRelative2root <- function(htmlfilepath) {
+  xfun::read_utf8(htmlfilepath) -> htmllines
+  stringr::str_replace(
+    htmllines,
+    "(?<![\\./])(lib)", "/lib"
+  ) -> htmllines_new
+  xfun::write_utf8(
+    htmllines_new,
+    con = htmlfilepath
+  )
+  invisible(htmlfilepath)
+}
+
+#' Move built webpage file to a folder which is a sub folder of serving root folder
+#'
+#' @param destFolder A character of absolute filepath, which is a subfolder of serving root folder
+#'
+#' @return
+#' @export
+#'
+#' @examples none
+move2destinationFolder <- function(destFolder) {
+  originalOutputFolderPath <- econR:::parse_frontmatter(.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dirpath)
+  htmlfilename <- .GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$filename
+  fromPath <- originalOutputFolderPath %//% htmlfilename
+  originalOutputFolderPath
+  toPath <- destFolder %//% htmlfilename
+  if (file.exists(toPath)) unlink(toPath)
+  file.link(
+    from = fromPath,
+    to = toPath
+  )
+  unlink(fromPath)
+  econR::convertLibpathRelative2root(toPath) -> convertedHtmlFilepath
+  return(convertedHtmlFilepath)
+}
+
+#' Save an htmlTag (extenstion to save_html)
+#'
+#' @param htmlEl A htmlTag.
+#' @param outputFilepath A character of absolute filepath
+#' @param dependencies A html dependencies (default=NULL)
+#' @param fixed_root A character of absolute path to the root serving folder. (default = NULL, meaning outputFilepath is at the root folder)
+#'
+#' @return
+#' @export
+#'
+#' @examples none
+save_page <- function(htmlEl, outputFilepath, dependencies = dependencies, fixed_root=NULL)
+{
+  if(!is.null(fixed_root)){
+    fromTemp <- file.path(fixed_root, "temp2839.html")
+    save_tempPage(htmlEl, fromTemp, dependencies = dependencies)
+    htmlFile_move(fromTemp,outputFilepath)
+  } else {
+    save_tempPage(
+      htmlEl,
+      outputFilepath,
+      dependencies
+    )
+  }
+}
+#' Movie html file to a another folder
+#'
+#' @param fromPath A character of absolute filepath
+#' @param toPath A character of absolute filepath
+#'
+#' @return the new filepath to the html file
+#' @export
+#'
+#' @examples none
+htmlFile_move <- function(fromPath, toPath) {
+  # fromPath <- htmlfile
+  # toPath <- destFolder %//% basename(htmlfile)
+  if (file.exists(toPath)) unlink(toPath)
+  file.link(
+    from = fromPath,
+    to = toPath
+  )
+  unlink(fromPath)
+  econR::convertLibpathRelative2root(toPath) -> convertedHtmlFilepath
+  invisible(convertedHtmlFilepath)
+}
+save_tempPage <- function(htmlEl, outputFilepath, dependencies=NULL){
+  htmltools::tagList(
+    htmlEl,
+    dependencies) -> htmlTag
+  htmltools::save_html(
+    htmlTag,
+    outputFilepath
+  )
+}
+#' Turn absolute path to relative
+#'
+#' @param absolutePath An absolute path to convert
+#' @param absoluteRootPath An absolute path to define the root
+#' @param beginWithSlash A logical (default = T), to start the relative path with /
+#' @param prefix A character of prefix (usually . or ..) to add before /
+#'
+#' @return the relative path
+#' @export
+#'
+#' @examples none
+turnPath_relative <- function(absolutePath,absoluteRootPath, beginWithSlash=T, prefix=NULL)
+{
+  stringr::str_remove(
+    absoluteRootPath, "/$"
+  ) -> absoluteRootPath
+
+  stringr::str_remove(
+    absolutePath,
+    absoluteRootPath
+  ) -> relativePath
+
+  if(!beginWithSlash){
+    stringr::str_remove(
+      relativePath,
+      "^/"
+    ) -> relativePath
+  }
+
+  if(!is.null(prefix)){
+    file.path(prefix, relativePath) -> relativePath
+  }
+  return(relativePath)
 }

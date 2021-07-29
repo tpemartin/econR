@@ -256,7 +256,7 @@ attachDependencies2UIandSave2www <- function(){
   .GlobalEnv$ui <- .GlobalEnv[[outputTag]]
 
   if(!is.null(.GlobalEnv$app$ui$dependencies)){
-    attachDependencies(
+    htmltools::attachDependencies(
       ui, .GlobalEnv$app$ui$dependencies,
       append=T
     ) -> ui
@@ -339,8 +339,15 @@ generate_dependenciesInGlobalEnv <- function(){
 
   flag_hasDependencyRscript <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath)
 
+  flag_hasDependencyRscript2 <- !is.null(.GlobalEnv$drake$activeRmd$frontmatter$dependencyRscriptFilePath)
+
   if(flag_hasDependencyRscript){
     dependencyRscriptFilePath <-.GlobalEnv$drake$activeRmd$frontmatter$output$html_tag$dependencyRscriptFilePath
+
+    dependencyRscriptFilePath <- econR:::parse_frontmatter(dependencyRscriptFilePath)
+    source(dependencyRscriptFilePath, local = .GlobalEnv)
+  } else if (flag_hasDependencyRscript2){
+    dependencyRscriptFilePath <- .GlobalEnv$drake$activeRmd$frontmatter$dependencyRscriptFilePath
 
     dependencyRscriptFilePath <- econR:::parse_frontmatter(dependencyRscriptFilePath)
     source(dependencyRscriptFilePath, local = .GlobalEnv)
