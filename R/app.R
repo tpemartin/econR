@@ -7,8 +7,6 @@ initiate_app <- function(){
     check_Rproject()
 
   .GlobalEnv$drake <- rmd2drake:::Drake()
-  .GlobalEnv$drake$source_plan()
-  .GlobalEnv$drake$makePlan()
 
   attach_appSystem2drake(appSystem)
 
@@ -23,6 +21,9 @@ initiate_app <- function(){
     rmdType,
     "server"={AppServer()},
     "ui"={
+      .GlobalEnv$drake$source_plan()
+      .GlobalEnv$drake$makePlan()
+
       attach_UIfrontmatterDependencies()
       AppUI()
       attachDependencies2UIandSave2www()
@@ -99,9 +100,10 @@ AppServer <- function(){
     .GlobalEnv$app$appPath %//% "server.R"
 
   updateServer_fromDrake()
-
+  # serverText <- econR:::create_serverScript()
+  serverText <- produce_serverFunctionScript()
   xfun::write_utf8(
-    text=econR:::create_serverScript(),
+    text=serverText,
     con=app$server$filepath
   )
 

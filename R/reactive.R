@@ -256,15 +256,20 @@ remove_duplicateTargetAssignment <- function(targetX, commandX){
   return(commandX)
 }
 addReactParenthesis <- function(targets, commandX){
-  commandX_deparse <- paste0(deparse(commandX), collapse="\n")
-
-  for(.x in targets){
-    pattern = .x
-    replacement = paste0(.x,"()")
-    stringr::str_replace_all(commandX_deparse, pattern, replacement) -> commandX_deparse
+  commandX_deparse <- rlang::expr_deparse(commandX)
+  for (.x in targets) {
+    pattern = glue::glue("{.x}(?!\\()")
+    replacement = paste0(.x, "()")
+    commandX_deparse <-
+      stringr::str_replace_all(commandX_deparse, pattern, replacement)
   }
-  return(commandX_deparse)
+  if (is.list(commandX_deparse)) {
+    commandX_parse <- purrr::map(commandX_deparse, parse_expr_robust)
+  } else {
+    commandX_parse <- econR:::parse_expr_robust(commandX_deparse)
+  }
 }
+
 extract_makeconditionInputs <- function(){
 
   .GlobalEnv$drake$process2get$codes[["makecondition"]] -> context_makecondition
@@ -462,4 +467,14 @@ get_whichHasReactiveT <- function(){
     ) %>%
     which() -> whichHasReactiveT
   return(whichHasReactiveT)
+}
+parse_expr_robust <- function(commandX_deparse){
+  tryCatch({
+    rlang::parse_expr(commandX_deparse)
+  },
+    error=function(e){
+      paste0(commandX_deparse, collapse="\n") -> commandX_deparse
+      rlang::parse_expr(commandX_deparse)
+    }) -> commandX_parse
+  return(commandX_parse)
 }

@@ -4,6 +4,7 @@ drake_cache: '.server'
 
 ```{r makecondition}
 library(shiny)
+shiny::reactiveConsole(T) # for developing stage. Should mark off when launching the product.
 library(ggplot2)
 ```
 
