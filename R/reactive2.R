@@ -242,8 +242,10 @@ validate_render_output_labels <- function(.currentSource, pick)
   .currentSource$rmd$tibble$label -> labels
   {
     whichIsRenderOrOutput <-
-      which(!pick$drakeF & !pick$makecondition &
-          (pick$render | pick$output))
+      which(!pick$drakeF
+        & !pick$makecondition
+        & !pick$reactiveT
+        & (pick$render | pick$output))
   }
   labels[whichIsRenderOrOutput] %>%
     stringr::str_extract(
