@@ -30,6 +30,19 @@ initiate_app <- function(){
       },
     {stop("This is neither a server.Rmd nor ui.Rmd file")}
   )
+
+  .GlobalEnv$app$run <- function(){
+    launch_withLog(.GlobalEnv$app$appPath)
+  }
+
+  .GlobalEnv$app$log$show <- function(){
+    shiny::reactlogShow()
+  }
+
+  .GlobalEnv$app$log$reset <- function(){
+    shiny::reactlogReset()
+  }
+
   flag_serverRexists <-
     file.exists(
       .GlobalEnv$app$appPath %//% "server.R"
@@ -292,11 +305,11 @@ get_input_output_labels <- function(.currentSource){
       input=stringr::str_subset(
         input_output_labels,
         "^input"
-      ),
+      ) %>% unique(),
       output=stringr::str_subset(
         input_output_labels,
         "^output"
-      )
+      ) %>% unique()
     )
   return(input_output_labels_divided)
 }
@@ -323,3 +336,32 @@ extract_outputInputLabels <- function(){
   print(.outputInputLabels)
   return(.outputInputLabels)
 }
+
+launch_withLog <- function(appPath){
+  library(shiny)
+  library(reactlog)
+  reactlog::reactlog_enable()
+
+  shiny::shinyAppDir(
+    appPath
+  )
+}
+
+# launch_withLog <- function(appPath){
+#   library(shiny)
+#   library(reactlog)
+#
+#   # tell shiny to log all reactivity
+#   reactlog_enable()
+#
+#   # once app has closed, display reactlog from shiny
+#
+#   # run a shiny app
+#   # app <- system.file(package = "shiny")
+#   runApp(
+#     appPath
+#   )
+#
+#
+# }
+
