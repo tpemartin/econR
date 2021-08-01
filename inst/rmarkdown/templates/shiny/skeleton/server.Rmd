@@ -8,13 +8,6 @@ shiny::reactiveConsole(T) # for developing stage. Should mark off when launching
 library(ggplot2)
 ```
 
-```{r}
-library(dplyr)
-appSystem <- get_currentRmd()
-appSystem <- check_yaml(appSystem)
-appSystem %>%
-  check_Rproject()
-```
 
 ## Input 
 
