@@ -65,7 +65,7 @@ get_currentSource <- function(){
 addConductorParenthesis <- function(code,label, conductorTargets){
   for(conductorX in conductorTargets){
     conductorX
-    pattern=glue::glue("{conductorX}(?!\\()")
+    pattern=glue::glue("\\b{conductorX}\\b")
     replacement=glue::glue("{conductorX}()")
     for(.x in seq_along(code)){
       if(is.null(code[[.x]]) || label[[.x]]==conductorX){
