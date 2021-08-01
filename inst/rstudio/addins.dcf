@@ -43,3 +43,8 @@ Description: New Addin Description
 Binding: initiate_app
 Interactive: false
 
+Name: Get Input/Output Labels
+Description: New Addin Description
+Binding: extract_outputInputLabels
+Interactive: false
+

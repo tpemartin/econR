@@ -279,3 +279,47 @@ updateServer_fromDrake <- function(){
     .GlobalEnv$drake$activeRmd$filenames
 
 }
+
+get_input_output_labels <- function(.currentSource){
+  unlist(.currentSource$code) %>%
+    stringr::str_extract_all(
+      "\\b(input|output)_[^\\s]*\\b"
+    ) %>%
+    unlist() -> input_output_labels
+
+  input_output_labels_divided <-
+    list(
+      input=stringr::str_subset(
+        input_output_labels,
+        "^input"
+      ),
+      output=stringr::str_subset(
+        input_output_labels,
+        "^output"
+      )
+    )
+  return(input_output_labels_divided)
+}
+
+#' Extract input output labels from the active Rmd
+#'
+#' @return
+#' @export
+#'
+#' @examples None
+extract_outputInputLabels <- function(){
+  .currentSource <- rstudioapi::getSourceEditorContext()
+  require(dplyr)
+  .currentSource$rmd$rmd <-
+    parsermd::parse_rmd(.currentSource$path)
+
+  .currentSource$rmd$rmd %>%
+    parsermd::rmd_node_code() ->
+    .currentSource$code
+
+  .outputInputLabels <<-
+    get_input_output_labels(.currentSource)
+
+  print(.outputInputLabels)
+  return(.outputInputLabels)
+}
