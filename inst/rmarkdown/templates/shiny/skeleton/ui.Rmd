@@ -4,7 +4,7 @@ dependencies: "dependencies"
 output:
   html_tag:
     filename: "index.html"
-    dirpath: "`r library(econR); . %//% 'docs'`"
+    dirpath: "`r library(econR); .r %//% 'docs'`"
     object: "ui"
 ---
 
@@ -22,7 +22,7 @@ dependencies <- {
   myown_deps <- htmltools::htmlDependency(
       name="myown",
       version="1.0.0",
-      src=c(file= . %//% "assets"),
+      src=c(file= .r %//% "assets"),
       script = "js/myscript.js",
       stylesheet="css/mystyle.css"
     )
@@ -41,13 +41,15 @@ dependencies <- {
 ### Input
 
 ```{r input_bins}
-sliderInput("bins",
+input_bins <- sliderInput("bins",
                         "Number of bins:",
                         min = 1,
                         max = 50,
                         value = 30)
 ```
 
+  * Given label `input_bins` defined in the code chunk setup, `input_bins <-` can be ignored if you like.
+  
 ### Output
 
 ```{r output_distPlot}

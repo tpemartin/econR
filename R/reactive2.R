@@ -367,8 +367,12 @@ assemble_serverFunctionScript <- function(.currentSource, pick)
   .currentSource$code[whichAreServerCode] %>%
     unlist() -> serverBody
 
+  .currentSource %>%
+    extract_makecondition(pick) -> .currentSource$makecondition
+
   c(
     "server <- function(input, output, session){",
+    .currentSource$makecondition,
     serverBody,
     "}"
   ) -> serverFunScript
@@ -380,4 +384,30 @@ assemble_serverFunctionScript <- function(.currentSource, pick)
   return(serverFunScript)
 
 }
+extract_makecondition <- function(.currentSource, pick){
+  whichAreMakeCondition <-
+    which(pick$makecondition
+      & !pick$drakeF)
 
+  .currentSource$code[whichAreMakeCondition] %>%
+    unlist() -> .xx
+  # remove input lines
+  .xx %>%
+    paste0(collapse = "\n") %>%
+    rlang::parse_exprs() -> .xx_exprs
+
+  .xx_exprs %>%
+    purrr::map_lgl(
+      ~{
+        # .x=.xx_exprs[[1]]
+        string_exprX <- rlang::expr_deparse(.x)
+        any(stringr::str_detect(
+          string_exprX, "(input_|reactiveConsole)"
+        ))
+      }
+    ) -> whichHasInput
+
+  .xx_exprs[!whichHasInput] -> .yy
+
+  return(.yy)
+}
