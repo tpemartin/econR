@@ -244,7 +244,7 @@ validate_render_output_labels <- function(.currentSource, pick)
     whichIsRenderOrOutput <-
       which(!pick$drakeF
         & !pick$makecondition
-        & !pick$reactiveT
+        # & !pick$reactiveT
         & (pick$render | pick$output))
   }
   labels[whichIsRenderOrOutput] %>%
@@ -259,12 +259,32 @@ validate_render_output_labels <- function(.currentSource, pick)
     ) %>%
     na.omit()-> renderLabels
 
+  # take care output chunk with reactive=T
+  {
+    whichIsOutputButReactiveT <-
+      which(!pick$drakeF
+        & !pick$makecondition
+        & pick$reactiveT
+        & pick$output)
+    labels[whichIsOutputButReactiveT] %>%
+      stringr::str_extract(
+        "^output_[^_]*"
+      ) %>%
+      na.omit()-> outputLabelsReactiveT
+    outputLabelsReactiveT %>%
+      stringr::str_replace(
+        "^output_",
+        "render_"
+      ) -> correspondingRenders
+  }
+
   outputLabels %>%
     stringr::str_replace(
       "^output_",
       "render_"
     ) %>%
-    {!(. %in% renderLabels)} %>%
+    {!(. %in%
+        c(renderLabels, correspondingRenders))} %>%
     which() -> whichOutputHasNoRender
 
   assertthat::assert_that(
@@ -320,21 +340,29 @@ processOutputChunkX <- function(outputLabelX, codeX, .currentSource, pick) {
       !pick$makecondition
   })
 
-  if (length(whichCodeIsRenderX) != 1) {
+  if (length(whichCodeIsRenderX) > 1) {
     stop(glue::glue("There are more than one render functions specified for {outputLabelX}"))
-  }
+  } else
+    if (length(whichCodeIsRenderX) == 0) {
+      c(
+        newoutputAssignX,
+        "{",
+        newCodeX,
+        "}"
+      ) -> newCodeX
 
-  .currentSource$code[[whichCodeIsRenderX]] %>%
-    stringr::str_extract(
-      "(?<=(<-)).*"
-    ) -> reactFunname
-
-  c(
-    newoutputAssignX,
-    paste0(reactFunname, "({"),
-    newCodeX,
-    "})"
-  ) -> newCodeX
+    } else {
+      .currentSource$code[[whichCodeIsRenderX]] %>%
+        stringr::str_extract(
+          "(?<=(<-)).*"
+        ) -> reactFunname
+      c(
+        newoutputAssignX,
+        paste0(reactFunname, "({"),
+        newCodeX,
+        "})"
+      ) -> newCodeX
+    }
   return(newCodeX)
 }
 processOutputChunk <- function(.currentSource, pick) {

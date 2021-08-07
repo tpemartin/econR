@@ -305,6 +305,10 @@ xfun::write_utf8(
   styler::style_text(appLines),
   .GlobalEnv$app$appPath %//% "app.R"
 )
+  # delete server.R
+  unlink(
+    .GlobalEnv$app$appPath %//% "server.R"
+  )
 }
 attach_UIfrontmatterDependencies <- function(){
   dependenciesName <- .GlobalEnv$drake$activeRmd$frontmatter$dependencies
