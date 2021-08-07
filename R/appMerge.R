@@ -1,6 +1,6 @@
 app_merge <- function(appymlfilepath){
   assertthat::assert_that(
-    file.exists(appymlfilepath),
+    length(appymlfilepath) ==1 && file.exists(appymlfilepath),
     msg="Proper _shiny.yml file does not exist."
   )
   function(){

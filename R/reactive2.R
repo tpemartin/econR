@@ -32,7 +32,7 @@ produce_serverFunctionScript <- function(){
   pick <- generate_picks(.currentSource)
 
   ## modify conductor to conductor()
-  .currentSource$code <- add_parenthesis2conductor(.currentSource = .currentSource, conductorTargets)
+  .currentSource$code <- add_parenthesis2conductor(.currentSource = .currentSource, conductorTargets, pick)
 
   ## add reactive(...)
   .currentSource$code <- add_reactive(.currentSource, pick)
@@ -62,23 +62,28 @@ get_currentSource <- function(){
   rstudioapi::documentSave(id=.currentSource$id)
 }
 
-addConductorParenthesis <- function(code,label, conductorTargets){
-  for(conductorX in conductorTargets){
-    conductorX
+addConductorParenthesis <- function(.code,label, conductorTargets, pick){
+  # newCode <- .code
+  for(.i in seq_along(conductorTargets)){
+    conductorX = conductorTargets[[.i]]
+    # if(conductorX=="codeContent") browser()
     pattern=glue::glue("\\b{conductorX}\\b")
     replacement=glue::glue("{conductorX}()")
-    for(.x in seq_along(code)){
-      if(is.null(code[[.x]]) || label[[.x]]==conductorX){
+
+    for(.x in seq_along(.code)){
+      if(is.null(.code[[.x]])
+        || label[[.x]]==conductorX
+        || pick$makecondition[[.x]]){
         next
       }
-      code[[.x]] <-
+      .code[[.x]] <-
         stringr::str_replace_all(
-          code[[.x]],
+          .code[[.x]],
           pattern, replacement
         )
     }
-    return(code)
   }
+  return(.code)
 }
 generate_picks <- function(.currentSource){
   pick <- list()
@@ -142,11 +147,14 @@ generate_picks <- function(.currentSource){
   return(pick)
 
 }
-add_parenthesis2conductor <- function(.currentSource, conductorTargets=character(0)){
+add_parenthesis2conductor <- function(.currentSource, conductorTargets=character(0), pick){
   newCode <- .currentSource$code
   if(length(conductorTargets)!=0) {
-    .currentSource$code %>%
-      addConductorParenthesis(.currentSource$rmd$tibble$label, conductorTargets) -> newCode
+    newCode <-
+      addConductorParenthesis(
+        .currentSource$code,
+        .currentSource$rmd$tibble$label,
+        conductorTargets, pick)
   }
   return(newCode)
 }

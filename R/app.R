@@ -60,8 +60,15 @@ initiate_app <- function(){
   # rstudioapi::initializeProject(.GlobalEnv$app$appPath)
   # rstudioapi::openProject(.GlobalEnv$app$appPath,T)
 
-  .r <- rprojroot::is_rstudio_project$make_fix_file()
-  appymlfilepath <- list.files(.r(), pattern="_shiny.yml", full.names = T)
+  .root <- (rprojroot::is_rstudio_project$make_fix_file())()
+  appymlfilepath <- list.files(.root, pattern="_shiny.yml", full.names = T)
+
+  assertthat::assert_that(
+    length(appymlfilepath)==1,
+    msg=glue::glue(
+      "There is no _shiny.yml in {.root}"
+    )
+  )
 
   .GlobalEnv$app$merge <- app_merge(appymlfilepath)
 }
