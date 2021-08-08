@@ -67,7 +67,7 @@ addConductorParenthesis <- function(.code,label, conductorTargets, pick){
   for(.i in seq_along(conductorTargets)){
     conductorX = conductorTargets[[.i]]
     # if(conductorX=="codeContent") browser()
-    pattern=glue::glue("\\b{conductorX}\\b")
+    pattern=glue::glue("\\b{conductorX}\\b(?!\\()")
     replacement=glue::glue("{conductorX}()")
 
     for(.x in seq_along(.code)){
