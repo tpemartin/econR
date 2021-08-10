@@ -71,16 +71,29 @@ addConductorParenthesis <- function(.code,label, conductorTargets, pick){
     replacement=glue::glue("{conductorX}()")
 
     for(.x in seq_along(.code)){
+      # print(
+      #   glue::glue(
+      #     '.i = {.i}; .x = {.x}'
+      #   )
+      # )
+      # if(.i == 3L && .x == 47L) browser()
+
       if(is.null(.code[[.x]])
         || label[[.x]]==conductorX
         || pick$makecondition[[.x]]){
         next
       }
       .code[[.x]] <-
-        stringr::str_replace_all(
+        codelineReplace_withExceptionWhenCertainPhraseShownInLine(
           .code[[.x]],
-          pattern, replacement
+          pattern,
+          replacement,
+          certainPhrases = c("req")
         )
+        # stringr::str_replace_all(
+        #   .code[[.x]],
+        #   pattern, replacement
+        # )
     }
   }
   return(.code)
@@ -446,4 +459,38 @@ extract_makecondition <- function(.currentSource, pick){
   .xx_exprs[!whichHasInput] -> .yy
 
   return(.yy)
+}
+codelineReplace_withExceptionWhenCertainPhraseShownInLine <- function(
+  .codeX, pattern, replacement,
+  certainPhrases=c("req")
+){
+  .exprsX <- rlang::parse_exprs(
+    paste0(.codeX, collapse = "\n")
+  )
+  purrr::map(
+    .exprsX,
+    rlang::expr_deparse,
+    width=200
+  ) -> list_codelines
+  regexCertainPhrases = paste0(
+    "\\b(",
+    paste0(certainPhrases, collapse="|"),
+    ")\\b"
+  )
+  whichHasNoCertainPhrase <-
+    which(purrr::map_lgl(
+      list_codelines[[1]],
+      ~{!stringr::str_detect(
+        .x,
+        regexCertainPhrases
+      )}
+    ))
+  .code <- list_codelines[[1]]
+  if(length(whichHasNoCertainPhrase)!=0){
+    stringr::str_replace_all(
+      .code[whichHasNoCertainPhrase],
+      pattern, replacement
+    ) -> .code[whichHasNoCertainPhrase]
+  }
+  return(.code)
 }
