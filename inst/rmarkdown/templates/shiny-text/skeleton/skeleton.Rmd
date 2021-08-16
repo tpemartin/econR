@@ -1,0 +1,63 @@
+
+Run the following chunk will create Rproj at the folder the current Rmd sits in, and restart RStudio as a project:
+```{r}
+library(econR)
+initiateProjectAtCurrentRmd()
+```
+
+## Create Web
+
+### ui.Rmd
+
+This Rmd works as a webpage builder. Its frontmatter:
+
+```
+dependencies: "dependencies" # the html dependencies name, better called dependencies if want to bring it forward to shiny app building
+output:
+  html_tag:   
+    filename: "index.html" # webpage html name
+    dirpath: "`r library(econR); . %//% 'docs'`" # webpage folder
+    object: "ui" # the object that will be rendered into webpage.
+```
+
+Addins > Create Web
+
+will create webpage as defined
+
+## Build App
+
+_shiny.yml defines app file system.
+
+```
+dependencies: 'shiny' # shiny or dependencies
+appPath: "where you want your app sits in"
+supporting_dir: "where your server.Rmd supporting files sit in"
+```
+
+## ui.Rmd
+
+Check if your shiny functions for input and output are properly used:
+
+  * `xxxInput`
+  
+  * `output_outputId` 
+  
+Addins > Build App
+
+## server.Rmd
+
+Check if your inputs and outputs are used with consistent ids, and all outputs have proper render function defined:
+
+  * `input_inputId`
+  
+  * `output_outputId` with `render_outputId`
+
+Build > App
+
+## Run App
+
+```{r}
+app$launchProject()
+```
+
+will launch RStudio app project. In the project, open `app.R` and click **Run App**.

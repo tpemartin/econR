@@ -67,8 +67,16 @@ addConductorParenthesis <- function(.code,label, conductorTargets, pick){
   for(.i in seq_along(conductorTargets)){
     conductorX = conductorTargets[[.i]]
     # if(conductorX=="codeContent") browser()
-    pattern=glue::glue("\\b{conductorX}\\b(?!\\()")
-    replacement=glue::glue("{conductorX}()")
+    # pattern: conductorX but not followed by "(" or "="
+    pattern1=glue::glue("(?<![\"\'])\\b{conductorX}\\b(?!(\\(|\\s*=))")
+    replacement1=glue::glue("{conductorX}()")
+    pattern2=glue::glue(
+      "[\"\']{conductorX}[\"\']"
+    )
+    replacement2= glue::glue("{conductorX}")
+
+    pattern_replacement = c(replacement1, replacement2)
+    names(pattern_replacement)=c(pattern1, pattern2)
 
     for(.x in seq_along(.code)){
       # print(
@@ -86,8 +94,7 @@ addConductorParenthesis <- function(.code,label, conductorTargets, pick){
       .code[[.x]] <-
         codelineReplace_withExceptionWhenCertainPhraseShownInLine(
           .code[[.x]],
-          pattern,
-          replacement,
+          pattern_replacement,
           certainPhrases = c("req")
         )
         # stringr::str_replace_all(
@@ -461,7 +468,7 @@ extract_makecondition <- function(.currentSource, pick){
   return(.yy)
 }
 codelineReplace_withExceptionWhenCertainPhraseShownInLine <- function(
-  .codeX, pattern, replacement,
+  .codeX, pattern_replacement,
   certainPhrases=c("req")
 ){
   .exprsX <- rlang::parse_exprs(
@@ -489,7 +496,7 @@ codelineReplace_withExceptionWhenCertainPhraseShownInLine <- function(
   if(length(whichHasNoCertainPhrase)!=0){
     stringr::str_replace_all(
       .code[whichHasNoCertainPhrase],
-      pattern, replacement
+      pattern_replacement
     ) -> .code[whichHasNoCertainPhrase]
   }
   return(.code)

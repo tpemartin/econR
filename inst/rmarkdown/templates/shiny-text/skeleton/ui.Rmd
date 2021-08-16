@@ -1,0 +1,102 @@
+---
+drake_cache: ".ui"
+dependencies: "dependencies"
+output:
+  html_tag:
+    filename: "index.html"
+    dirpath: "`r library(econR); .r %//% 'docs'`"
+    object: "ui"
+---
+
+
+```{r makecondition}
+library(dplyr)
+library(shiny)
+library(htmltools)
+library(econR)
+
+```
+
+```{r dependencies}
+dependencies <- {
+  myown_deps <- htmltools::htmlDependency(
+      name="myown",
+      version="1.0.0",
+      src=c(file= .r %//% "assets"),
+      script = "js/myscript.js",
+      stylesheet="css/mystyle.css"
+    )
+  econR_deps <- econR::html_dependencies()
+  tagList(
+    econR_deps$jquery(),
+    econR_deps$materialise(),
+    myown_deps
+  )
+}
+```
+
+
+## =======================
+
+### Input
+
+```{r input_bins}
+input_bins <- sliderInput("bins",
+                        "Number of bins:",
+                        min = 1,
+                        max = 50,
+                        value = 30)
+```
+
+  * Given label `input_bins` defined in the code chunk setup, `input_bins <-` can be ignored if you like.
+  
+### Output
+
+```{r output_inputText}
+output_inputText <- shiny::textOutput("inputText")
+```
+
+## =======================
+
+### UI
+
+```{r ui}
+ui <- tags$body(
+  fluidPage(
+
+    # Application title
+    titlePanel("Input text check template"),
+
+    # Sidebar with a slider input for number of bins 
+    sidebarLayout(
+        sidebarPanel(
+            input_bins
+        ),
+
+        # Show a plot of the generated distribution
+        mainPanel(
+           output_inputText
+        )
+    )
+))
+```
+
+
+
+## =======================
+
+
+## Browse
+
+```{r}
+web$browse()
+```
+
+
+
+
+
+## JS
+
+
+<!--JS end-->

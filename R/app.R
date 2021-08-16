@@ -19,7 +19,9 @@ initiate_app <- function(){
 
   switch(
     rmdType,
-    "server"={AppServer()},
+    "server"={
+      AppServer()
+      },
     "ui"={
       .GlobalEnv$drake$source_plan()
       .GlobalEnv$drake$makePlan()
@@ -27,6 +29,7 @@ initiate_app <- function(){
       attach_UIfrontmatterDependencies()
       AppUI()
       attachDependencies2UIandSave2www()
+      message("UI building process is done.")
       },
     {stop("This is neither a server.Rmd nor ui.Rmd file")}
   )
@@ -71,6 +74,8 @@ initiate_app <- function(){
   )
 
   .GlobalEnv$app$merge <- app_merge(appymlfilepath)
+
+  message("Current build is complete.")
 }
 
 create_serverFunction2 <- function(){
@@ -142,6 +147,8 @@ AppServer <- function(){
   }
 
   .GlobalEnv$app <- app
+
+  message("Server building process is done.")
 }
 
 
