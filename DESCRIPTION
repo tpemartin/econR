@@ -26,6 +26,7 @@ Imports:
     rprojroot,
     servr,
     shiny,
-    stringr
+    stringr,
+    styler
 Depends: 
     R (>= 4.1.0)

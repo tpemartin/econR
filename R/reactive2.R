@@ -439,7 +439,7 @@ assemble_serverFunctionScript <- function(.currentSource, pick, styler=T)
     "}"
   ) -> serverFunScript
 
-  if(stlyer){
+  if(styler){
     styler::style_text(
       serverFunScript
     ) -> serverFunScript
