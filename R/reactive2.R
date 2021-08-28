@@ -50,7 +50,7 @@ produce_serverFunctionScript <- function(){
   serverFunScript <-
     tryCatch(
       {assemble_serverFunctionScript(.currentSource, pick)},
-      function(e){
+      error=function(e){
         assemble_serverFunctionScript(.currentSource, pick, styler=F)
       }
     )
