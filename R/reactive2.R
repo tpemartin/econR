@@ -48,7 +48,13 @@ produce_serverFunctionScript <- function(){
     processOutputChunk(.currentSource, pick)
 
   serverFunScript <-
-    assemble_serverFunctionScript(.currentSource, pick)
+    tryCatch(
+      {assemble_serverFunctionScript(.currentSource, pick)},
+      function(e){
+        assemble_serverFunctionScript(.currentSource, pick, styler=F)
+      }
+    )
+
 
   return(serverFunScript)
 }
@@ -410,7 +416,7 @@ processOutputChunk <- function(.currentSource, pick) {
   return(newCode)
 }
 
-assemble_serverFunctionScript <- function(.currentSource, pick)
+assemble_serverFunctionScript <- function(.currentSource, pick, styler=T)
 {
   whichAreServerCode <-
     which(
@@ -433,9 +439,12 @@ assemble_serverFunctionScript <- function(.currentSource, pick)
     "}"
   ) -> serverFunScript
 
-  styler::style_text(
-    serverFunScript
-  ) -> serverFunScript
+  if(stlyer){
+    styler::style_text(
+      serverFunScript
+    ) -> serverFunScript
+  }
+
 
   return(serverFunScript)
 
