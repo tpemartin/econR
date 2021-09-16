@@ -74,6 +74,9 @@ Web <- function(){
 
   web$generate_browsableWithDependencies <- BrowseWithDependencies
 
+  web$dependencyTool <- list(
+    srcFileAbsolute = dependencyFileAbsolute
+  )
   return(web)
 }
 
@@ -750,10 +753,39 @@ generate_drakebrowsable2 <- function(dependencies){
 BrowseWithDependencies <- function(dep){
   function(x){
     htmltools::browsable(
-      htmltools::tagList(
+      htmltools::attachDependencies(
         x,
         dep
       )
     )
   }
+}
+dependencyFileAbsolute <- function(argList){
+  # argList <- list(...)
+  # argList <- list(
+  #   name="event",
+  #   version="1.0.0",
+  #   src = c(file="support/assets/event"),
+  #   script = "event.js",
+  #   stylesheet = "event.css"
+  # )
+
+  if("file" %in% names(argList$src)){
+    filepath = argList$src[["file"]]
+    rootpath = (rprojroot::is_rstudio_project$make_fix_file())()
+    if(!stringr::str_detect(
+      filepath,paste0("^",rootpath)
+    )) {
+      filepath2 = file.path(rootpath, filepath)
+      argList$src[["file"]] = filepath2}
+  }
+
+  effective_dependencies <-
+    do.call(
+      htmltools::htmlDependency,
+      argList
+    )
+  return(
+    effective_dependencies
+  )
 }

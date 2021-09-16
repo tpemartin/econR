@@ -167,7 +167,9 @@ Web2 <- function() {
   }
 
   web$generate_browsableWithDependencies <- BrowseWithDependencies
-
+  web$dependencyTool <- list(
+    srcFileAbsolute = dependencyFileAbsolute
+  )
   return(web)
 }
 attachMethod_getOutputFilepath <- function(web){
