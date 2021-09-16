@@ -72,6 +72,8 @@ Web <- function(){
       }
     )
 
+  web$generate_browsableWithDependencies <- BrowseWithDependencies
+
   return(web)
 }
 
@@ -742,6 +744,16 @@ generate_drakebrowsable2 <- function(dependencies){
     ) -> expr_browsable
     rlang::eval_bare(
       expr_browsable, env=.GlobalEnv
+    )
+  }
+}
+BrowseWithDependencies <- function(dep){
+  function(x){
+    htmltools::browsable(
+      htmltools::tagList(
+        x,
+        dep
+      )
     )
   }
 }

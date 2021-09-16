@@ -166,6 +166,8 @@ Web2 <- function() {
 
   }
 
+  web$generate_browsableWithDependencies <- BrowseWithDependencies
+
   return(web)
 }
 attachMethod_getOutputFilepath <- function(web){
