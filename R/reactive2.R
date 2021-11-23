@@ -5,7 +5,11 @@
 #'
 #' @examples none
 produce_serverFunctionScript <- function(){
-  .currentSource <- rstudioapi::getSourceEditorContext()
+  .currentSource <- list(
+    path=.GlobalEnv$drake$activeRmd$filenames
+  )
+
+    # rstudioapi::getSourceEditorContext()
   require(dplyr)
   .currentSource$rmd$rmd <-
     parsermd::parse_rmd(.currentSource$path)
@@ -23,13 +27,15 @@ produce_serverFunctionScript <- function(){
     parsermd::rmd_node_code() ->
     .currentSource$code
 
+  pick <- generate_picks(.currentSource)
+
   .currentSource$rmd$tibble %>%
     pull(label) %>%
+    .[!pick$drakeF & !pick$reactvalueT] %>%
     stringr::str_subset("^((render|output|input)_|makecondition)", negate=T) %>%
     stringr::str_subset("") ->
     conductorTargets
 
-  pick <- generate_picks(.currentSource)
 
   ## modify conductor to conductor()
   .currentSource$code <- add_parenthesis2conductor(.currentSource = .currentSource, conductorTargets, pick)
@@ -121,6 +127,18 @@ generate_picks <- function(.currentSource){
           any(
             !is.null(.x$drake) &&
               stringr::str_detect(.x$drake,"F")
+          )
+        }
+      )
+  }
+
+  pick$reactvalueT <- {
+    .currentSource$options %>%
+      purrr::map_lgl(
+        ~{
+          any(
+            !is.null(.x$reactvalue) &&
+              stringr::str_detect(.x$reactvalue,"T")
           )
         }
       )

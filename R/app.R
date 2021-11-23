@@ -207,6 +207,26 @@ AppUI <- function(){
 
 }
 
+#' Create invisible action button automatically clicked to prevent timeout of an app.
+#'
+#' @param seconds numeric. seconds to automatically click the action button
+#'
+#' @return
+#' @export
+#'
+#' @examples none
+timeoutPrevention <- function(seconds=10){
+  require(htmltools)
+  tagList(
+    shiny::actionButton("timeoutbtn", "An action button", style="display: none;"),
+    tags$script(glue::glue('$(function(){$actbtn = $("#timeoutbtn");
+setInterval(
+  function(){
+      $actbtn.click()
+  }, <<seconds*1000>>)})', .open="<<", .close=">>"))
+  )
+}
+
 # helpers -----------------------------------------------------------------
 
 
